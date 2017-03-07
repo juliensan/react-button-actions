@@ -1,0 +1,12 @@
+.DS_Store
+.idea/*
+*.bak
+
+node_modules
+
+npm-debug.log
+
+*.bundle.js*
+*.vendors.js*
+*.worker.js*
+*.tgz*
