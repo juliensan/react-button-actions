@@ -1,6 +1,6 @@
 {
   "name": "react-button-actions",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Performant HoC designed to make buttons appear on swipe and others actions on some element.",
   "main": "dist/index",
   "scripts": {
