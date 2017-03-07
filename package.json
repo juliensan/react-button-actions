@@ -5,8 +5,7 @@
   "main": "dist/index",
   "scripts": {
     "start": "node_modules/.bin/webpack-dev-server --inline --port 8000 -w --progress --colors --config compilers/webpack.ds.js",
-    "build": "NODE_ENV=production node_modules/.bin/webpack -p --config compilers/webpack.build.js",
-    "prepublish": "npm run build"
+    "build": "NODE_ENV=production node_modules/.bin/webpack -p --config compilers/webpack.build.js"
   },
   "keywords": [
     "react",
