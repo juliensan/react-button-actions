@@ -7,12 +7,12 @@ const front = {
   entry: {
     main: `./src/ButtonActions.js`
   },
-  devtool: 'cheap-module-source-map',
+  devtool: 'source-map',
   debug: false,
-  bail: true,
+  bail: false,
   externals: {
-  'react': 'react',
-  'react-dom': 'react-dom'
+    'react': 'react',
+    'react-dom': 'react-dom'
   },
   output: {
     path: path.join(__dirname, '../', '/dist/'),
@@ -54,4 +54,4 @@ const front = {
   }
 };
 
-module.exports = [front];
+module.exports = front;
