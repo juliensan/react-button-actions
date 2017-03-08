@@ -64,41 +64,55 @@ class ButtonActions extends CoreSwipe {
 
   resetOverlay() {
     if (this.leftIsVisible || this.rightIsVisible) {
-      // console.log('reset overlay for : ', this.swipeId);
-      this.onClose();
       this.translateOverlay(0);
       this.transformLeftButton(0);
       this.transformRightButton(0);
-      this.leftIsVisible = false;
-      this.rightIsVisible = false;
     }
   }
 
   showRightMenu() {
-    this.onClose();
     this.translateOverlay(-this.btnsRightWidth);
     this.transformLeftButton(0);
     this.transformRightButton(1);
     this.leftIsVisible = false;
     this.rightIsVisible = true;
-    console.log('called Right');
-    this.onOpen();
   }
 
   showLeftMenu() {
-    this.onClose();
     this.translateOverlay(this.btnsLeftWidth);
     this.transformLeftButton(1);
     this.transformRightButton(0);
     this.leftIsVisible = true;
     this.rightIsVisible = false;
-    console.log('called Left');
-    this.onOpen();
+  }
+
+  handleClosingOpenings() {
+    const leftClosing = (this.leftIsVisible && this.props.left && this.shouldShowLeft === false);
+    const rightClosing = (this.rightIsVisible && this.props.right && this.shouldShowRight === false);
+
+    const leftOpening = (this.leftIsVisible === false && this.props.left && this.shouldShowLeft === true);
+    const rightOpening = (this.rightIsVisible === false && this.props.right && this.shouldShowRight === true);
+
+    if (leftClosing) {
+      this.onClose(this.props.left);
+      this.leftIsVisible = false;
+    }
+
+    if (leftOpening) this.onOpen(this.props.left);
+
+    if (rightClosing) {
+      this.onClose(this.props.right);
+      this.rightIsVisible = false;
+    }
+
+    if (rightOpening) this.onOpen(this.props.right);
   }
 
   onPanEnd(evt) {
     this.shouldShowRight = (evt.deltaX < 0 && evt.distance > this.treshold);
     this.shouldShowLeft = (evt.deltaX > 0 && evt.distance > this.treshold);
+
+    this.handleClosingOpenings();
 
     if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
 
@@ -152,15 +166,13 @@ class ButtonActions extends CoreSwipe {
     }
   }
 
-  onOpen() {
-    if (this.props.onOpen) this.props.onOpen.call();
+  onOpen(values) {
+    if (this.props.onOpen) this.props.onOpen.call(null, values);
     this.closeSwipes(this.swipeId);
   }
 
-  onClose() {
-    const hasSomeValues = this.rightIsVisible || this.leftIsVisible;
-    if (this.props.onClose && hasSomeValues) {
-      const values = (this.rightIsVisible) ? this.props.right : this.props.left;
+  onClose(values) {
+    if (this.props.onClose) {
       return this.props.onClose.call(null, values);
     }
   }
@@ -210,9 +222,6 @@ class ButtonActions extends CoreSwipe {
 
   resetEvents() {
     const eventsString = Object.keys(this.bindedEvents).join(' ');
-    // console.log('ds', eventsString);
-    // console.log('hammer : ', this.hammer);
-    // console.log('disbinding events');
     this.hammer.off(eventsString);
   }
 
@@ -222,7 +231,7 @@ class ButtonActions extends CoreSwipe {
 
   initEventsFromProps() {
     const events = this.getEvents();
-    // console.log('events', events);
+
     this.registerEvent('panstart');
     this.hammer.on('panstart', this.onPanStart);
     this.hammer.on('panend', this.onPanEnd);
@@ -235,9 +244,7 @@ class ButtonActions extends CoreSwipe {
   }
 
   initTouchEvents() {
-    // console.log('has events : ', this.hasEvents());
     if (this.hasEvents()) {
-      // console.log('binding hammer', this.refs.overlay);
       this.hammer = new Hammer(this.refs.overlay);
       this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
@@ -275,7 +282,6 @@ class ButtonActions extends CoreSwipe {
   }
 
   handleBtnClick(action) {
-    // console.log('action clicked : ', action);
     this.resetOverlay();
   }
 
