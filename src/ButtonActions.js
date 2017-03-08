@@ -64,6 +64,7 @@ class ButtonActions extends CoreSwipe {
 
   resetOverlay() {
     if (this.leftIsVisible || this.rightIsVisible) {
+      // console.log('reset overlay for : ', this.swipeId);
       this.onClose();
       this.translateOverlay(0);
       this.transformLeftButton(0);
@@ -94,8 +95,8 @@ class ButtonActions extends CoreSwipe {
   }
 
   onPanEnd(evt) {
-    this.shouldShowRight = (evt.deltaX < 0 && evt.distance > this.treshold);
-    this.shouldShowLeft = (evt.deltaX > 0 && evt.distance > this.treshold);
+    this.shouldShowRight = (this.refs.rightBtnContainer &&  evt.deltaX < 0 && evt.distance > this.treshold);
+    this.shouldShowLeft = (this.refs.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.treshold);
 
     if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
 
@@ -119,15 +120,22 @@ class ButtonActions extends CoreSwipe {
   }
 
   transformLeftButton(value) {
-    this.refs.leftBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
+    if (this.refs.leftBtnContainer) {
+      this.refs.leftBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
+    }
   }
 
   transformRightButton(value) {
-    this.refs.rightBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
+    if (this.refs.rightBtnContainer) {
+      this.refs.rightBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
+    }
   }
 
   translateOverlay(value) {
-    this.refs.overlay.style.transform = `translate3d(${value}px,0px,0px)`;
+    if (this.refs.overlay) {
+      this.refs.overlay.style.transform = `translate3d(${value}px,0px,0px)`;
+    }
+
   }
 
   onLeftPan(evt) {
@@ -191,7 +199,9 @@ class ButtonActions extends CoreSwipe {
 
   resetEvents() {
     const eventsString = Object.keys(this.bindedEvents).join(' ');
-    console.log('disbinding events');
+    // console.log('ds', eventsString);
+    // console.log('hammer : ', this.hammer);
+    // console.log('disbinding events');
     this.hammer.off(eventsString);
   }
 
@@ -201,30 +211,31 @@ class ButtonActions extends CoreSwipe {
 
   initEventsFromProps() {
     const events = this.getEvents();
-
+    // console.log('events', events);
     if (events.left || events.right) {
-      console.log('binding pan');
+      // console.log('binding pan');
       this.registerEvent('panstart');
       this.hammer.on('panstart', this.onPanStart);
       this.hammer.on('panend', this.onPanEnd);
     }
 
-    if (events.left) {
-      console.log('binding pan left');
+    if (events.right) {
+      // console.log('binding pan left');
       this.registerEvent('panleft');
       this.hammer.on('panleft', this.onLeftPan);
     }
 
-    if (events.right) {
-      console.log('binding pan right');
+    if (events.left) {
+      // console.log('binding pan right ho');
       this.registerEvent('panright');
       this.hammer.on('panright', this.onRightPan);
     }
   }
 
   initTouchEvents() {
+    // console.log('has events : ', this.hasEvents());
     if (this.hasEvents()) {
-      console.log('binding hammer');
+      // console.log('binding hammer', this.refs.overlay);
       this.hammer = new Hammer(this.refs.overlay);
       this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
@@ -233,7 +244,6 @@ class ButtonActions extends CoreSwipe {
   }
 
   initSizes() {
-    // const overlay = this.refs.overlay;
     this.overlayWidth = this.refs.childrenContainer.offsetWidth;
 
     this.refs.overlay.style.width = `${this.overlayWidth}px`;
@@ -242,28 +252,33 @@ class ButtonActions extends CoreSwipe {
     this.btnsLeftWidth = (this.overlayWidth / 4.5) * leftLength;
     this.btnsRightWidth = (this.overlayWidth / 4.5) * rightLength;
 
-    this.refs.rightBtnContainer.style.width = `${this.btnsRightWidth}px`;
-    this.refs.leftBtnContainer.style.width  = `${this.btnsLeftWidth}px`;
+    if (this.refs.rightBtnContainer) {
+      this.refs.rightBtnContainer.style.width = `${this.btnsRightWidth}px`;
+    }
+
+    if (this.refs.leftBtnContainer) {
+      this.refs.leftBtnContainer.style.width  = `${this.btnsLeftWidth}px`;
+    }
 
     this.treshold = Math.round(this.overlayWidth / 4.5);
   }
 
   componentDidMount() {
-    console.group('On did mount Swipe');
+    // console.group('On did mount Swipe');
     // linking hammer ref content
     this.initTouchEvents();
     this.initSizes();
     this.registerSwipe(this.swipeId, this.resetOverlay);
-    console.groupEnd();
+    // console.groupEnd();
   }
 
   handleBtnClick(action) {
-    console.log('action clicked : ', action);
+    // console.log('action clicked : ', action);
     this.resetOverlay();
   }
 
   renderLeftButtons() {
-    return (this.props.left.length) ? (
+    return (this.props.left && this.props.left.length) ? (
       <div className="leftBtnContainer" key="leftBtnContainer" style={this.styles.leftContainerStyles} ref="leftBtnContainer" >
        { this.props.left.map((action, index) =>
           <SlidingButton
@@ -277,7 +292,7 @@ class ButtonActions extends CoreSwipe {
   }
 
   renderRightButtons() {
-    return (this.props.right.length) ? (
+    return (this.props.right && this.props.right.length) ? (
       <div
         className="rightBtnContainer"
         key="rightBtnContainer"

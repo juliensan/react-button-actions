@@ -1,12 +1,23 @@
 import React from 'react';
 import ButtonActions from '../src/ButtonActions';
 
-class Example extends React.Component {
-  constructor(props) {
-    super(props);
-    console.log('construct');
+class Element2 extends React.Component {
+  render() {
+    return (
+      <ButtonActions
+          autoclose
+          onPress={() => console.log('callback 2 on touch')}
+          {...this.props.swipes}
+        >
+        <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#fbab56', color: '#FFF' }} >
+          <div style={{ flex: '1', fontWeight: 'bold' }} > Component Element 2</div>
+        </div>
+      </ButtonActions>
+    );
   }
+};
 
+class Example extends React.Component {
   componentWillMount() {
     console.log('will mount')
   }
@@ -18,19 +29,7 @@ class Example extends React.Component {
     if (modifier === 3) return {
       onOpen,
       onClose,
-      left: [
-      {
-        text: 'Answer',
-        onPress: () => console.log('Answer'),
-        style: { backgroundColor: 'red', color: 'white' }
-      },
-      {
-        text: (<i style={{fontSize: '3em'}} className="fa fa-id-card" aria-hidden="true"></i>),
-        onPress:() => console.log('Id'),
-        style: { backgroundColor: '#00aaff', color: 'white' }
-      },
-    ],
-    right: [
+    left: [
       {
         text: (<i style={{fontSize: '3em'}} className="fa fa-spinner fa-spin fa-3x fa-fw"></i>),
         onPress: () => console.log('loading'),
@@ -90,12 +89,6 @@ class Example extends React.Component {
       </div>
     );
 
-    const element2 = (
-      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#fbab56', color: '#FFF' }} >
-        <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 1</div>
-      </div>
-    );
-
     const element3 = (
       <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#ab75ff', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 3</div>
@@ -115,13 +108,7 @@ class Example extends React.Component {
           {element1}
         </ButtonActions>
         <br />
-         <ButtonActions
-          autoclose
-          onPress={() => console.log('callback 2 on touch')}
-          {...this.generateSwipes(2)}
-        >
-        {element2}
-        </ButtonActions>
+          <Element2 swipes={{...this.generateSwipes(2)}} />
         <br />
         <ButtonActions
           autoclose

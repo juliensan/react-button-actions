@@ -1,7 +1,6 @@
 const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
-const DashboardPlugin = require('webpack-dashboard/plugin');
 
 const front = {
   entry: {
@@ -24,8 +23,15 @@ const front = {
     modulesDirectories: ['node_modules']
   },
   plugins: [
-    new DashboardPlugin(),
-    new webpack.optimize.DedupePlugin()
+    new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.UglifyJsPlugin({
+      minimize: true,
+      mangle: true,
+      compress: {
+        screw_ie8: true, // eslint-disable-line
+        warnings: false,
+      }
+    })
   ],
   resolve: {
     extensions: ['', '.js', '.css', '.ttf', '.eot', '.woff'],
@@ -45,6 +51,7 @@ const front = {
         query: {
           cacheDirectory: false,
           presets: ['es2015', 'stage-0', 'react', 'react-optimize'],
+          // presets: ['es2015', 'stage-0', 'react'],
           plugins: [
             'transform-runtime'
           ]

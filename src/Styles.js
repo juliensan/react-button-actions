@@ -1,7 +1,7 @@
 const Styles = {
   SwipeStyles: {
     overlayStyles: { zIndex: 2, transition: 'transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)' },
-    baseSwipeContainerStyles: { overflow: 'hidden', position: 'relative', display: 'inline-block' },
+    baseSwipeContainerStyles: { overflow: 'hidden', position: 'relative' },
     buttonsContainerStyles: { zIndex: 1, height: '100%' },
     rightContainerStyles: {
       transition: 'transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)',

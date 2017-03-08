@@ -8,6 +8,8 @@ class SwipeJS extends Component {
   }
 
   closeSwipes(filteredId) {
+    // console.log('_compCallbacks', _compCallbacks);
+    // console.log('filteredId', filteredId);
     Object.keys(_compCallbacks)
       .filter((callbackId) => callbackId !== `${filteredId}`)
       .forEach((idToClose) => _compCallbacks[idToClose].call());
@@ -15,12 +17,12 @@ class SwipeJS extends Component {
 
   registerSwipe(id, callback) {
     _compCallbacks[id] = callback;
-    console.log('added :', _compCallbacks);
+    // console.log('added :', _compCallbacks);
   }
 
   unRegisterSwipe(id) {
     delete _compCallbacks[id];
-    console.log('removed : ', _compCallbacks);
+    // console.log('removed : ', _compCallbacks);
   }
 
 }
