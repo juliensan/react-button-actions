@@ -81,6 +81,7 @@ class ButtonActions extends CoreSwipe {
     this.transformRightButton(1);
     this.leftIsVisible = false;
     this.rightIsVisible = true;
+    console.log('called Right');
     this.onOpen();
   }
 
@@ -91,12 +92,13 @@ class ButtonActions extends CoreSwipe {
     this.transformRightButton(0);
     this.leftIsVisible = true;
     this.rightIsVisible = false;
+    console.log('called Left');
     this.onOpen();
   }
 
   onPanEnd(evt) {
-    this.shouldShowRight = (this.refs.rightBtnContainer &&  evt.deltaX < 0 && evt.distance > this.treshold);
-    this.shouldShowLeft = (this.refs.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.treshold);
+    this.shouldShowRight = (evt.deltaX < 0 && evt.distance > this.treshold);
+    this.shouldShowLeft = (evt.deltaX > 0 && evt.distance > this.treshold);
 
     if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
 
@@ -141,8 +143,13 @@ class ButtonActions extends CoreSwipe {
   onLeftPan(evt) {
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.max(dist, this.btnsRightWidth * - 1);
-    this.translateOverlay(value);
-    this.transformButtons(dist);
+
+    if (this.btnsRightWidth === 0) {
+      this.resetOverlay();
+    } else {
+      this.translateOverlay(value);
+      this.transformButtons(value);
+    }
   }
 
   onOpen() {
@@ -165,8 +172,12 @@ class ButtonActions extends CoreSwipe {
   onRightPan(evt) {
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.min(dist, this.btnsLeftWidth);
-    this.translateOverlay(value);
-    this.transformButtons(dist);
+    if (this.btnsLeftWidth === 0) {
+      this.resetOverlay();
+    } else {
+      this.translateOverlay(value);
+      this.transformButtons(value);
+    }
   }
 
   onPressUp() {
@@ -212,24 +223,15 @@ class ButtonActions extends CoreSwipe {
   initEventsFromProps() {
     const events = this.getEvents();
     // console.log('events', events);
-    if (events.left || events.right) {
-      // console.log('binding pan');
-      this.registerEvent('panstart');
-      this.hammer.on('panstart', this.onPanStart);
-      this.hammer.on('panend', this.onPanEnd);
-    }
+    this.registerEvent('panstart');
+    this.hammer.on('panstart', this.onPanStart);
+    this.hammer.on('panend', this.onPanEnd);
 
-    if (events.right) {
-      // console.log('binding pan left');
-      this.registerEvent('panleft');
-      this.hammer.on('panleft', this.onLeftPan);
-    }
+    this.registerEvent('panleft');
+    this.hammer.on('panleft', this.onLeftPan);
 
-    if (events.left) {
-      // console.log('binding pan right ho');
-      this.registerEvent('panright');
-      this.hammer.on('panright', this.onRightPan);
-    }
+    this.registerEvent('panright');
+    this.hammer.on('panright', this.onRightPan);
   }
 
   initTouchEvents() {
