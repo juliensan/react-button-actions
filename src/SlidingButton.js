@@ -1,4 +1,5 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import Styles from './Styles';
 
 class SlidingButton extends Component {
@@ -33,7 +34,7 @@ class SlidingButton extends Component {
 
   render() {
     return (
-      <div onTouchTap={this.handleBtnClick} style={this.containerStyles}>
+      <div onClick={this.handleBtnClick} style={this.containerStyles}>
         <div style={this.styles.content}>{this.props.action.text}</div>
       </div>
     );

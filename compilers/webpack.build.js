@@ -6,9 +6,8 @@ const front = {
   entry: {
     main: `./src/ButtonActions.js`
   },
-  devtool: 'source-map',
-  debug: false,
-  bail: false,
+  devtool: 'cheap-module-source-map',
+  bail: true,
   externals: {
     'react': 'react',
     'react-dom': 'react-dom'
@@ -19,44 +18,58 @@ const front = {
     library: 'ReactButtonActions',
     libraryTarget: 'umd'
   },
-  resolveLoader: {
-    modulesDirectories: ['node_modules']
-  },
   plugins: [
-    new webpack.optimize.DedupePlugin(),
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false
+    }),
     new webpack.optimize.UglifyJsPlugin({
       minimize: true,
-      mangle: true,
+      sourceMap: true,
+      beautify: false,
+      parallel: true,
+      comments: false,
       compress: {
-        screw_ie8: true, // eslint-disable-line
         warnings: false,
+        drop_console: true,
+        screw_ie8: true
+      },
+      mangle: {
+        except: [
+          '$', 'webpackJsonp'
+        ],
+        screw_ie8: true,
+        keep_fnames: true
+      },
+      output: {
+        comments: false,
+        screw_ie8: true
       }
     })
   ],
   resolve: {
-    extensions: ['', '.js', '.css', '.ttf', '.eot', '.woff'],
-    modulesDirectories: ['node_modules']
+    extensions: ['.js', '.css', '.ttf', '.eot', '.woff'],
+    modules: ['node_modules']
   },
   module: {
-    loaders: [
-      {
-        test: require.resolve("react-addons-perf"),
-        loader: "expose?Perf"
-      },
-      { test: /\.css$/, loaders: ['style', 'css'] },
+    rules: [
+      { test: /\.css$/, use: ['style-loader', 'css-loader']},
       {
         test: /\.js?$/,
         exclude: /(node_modules)/,
-        loader: 'babel',
-        query: {
-          cacheDirectory: false,
-          presets: ['es2015', 'stage-0', 'react', 'react-optimize'],
-          // presets: ['es2015', 'stage-0', 'react'],
-          plugins: [
-            'transform-runtime'
-          ]
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: false,
+            presets: ['env', ["es2015", { "loose": true, "modules": false }], 'stage-0', 'react', 'react-optimize'],
+            plugins: [
+              'transform-runtime',
+              'transform-decorators-legacy'
+            ]
+          }
         }
-      }
+      },
+      { test: /\.(eot|ttf|woff|jpg|png|gif|svg)/, use: 'url-loader' }
     ]
   }
 };

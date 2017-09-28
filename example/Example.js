@@ -18,13 +18,17 @@ class Element2 extends React.Component {
 };
 
 class Example extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { toggle : false }
+  }
   componentWillMount() {
     console.log('will mount')
   }
 
   generateSwipes(modifier = false) {
-    const onOpen = (val) => console.log('open lol', val);
-    const onClose = (val) => console.log('close lol', val);
+    const onOpen = (val) => console.log('open', val);
+    const onClose = (val) => console.log('close', val);
 
     if (modifier === 3) return {
       onOpen,
@@ -69,9 +73,17 @@ class Example extends React.Component {
         { text: (<i style={{fontSize: '3em'}} className="fa fa-envelope" aria-hidden="true"></i>), onPress: () => console.log('Envelope'), style: { backgroundColor: '#7979e4', color: 'white' }}
       ]
       : [
-        { text: 'Offert', onPress: () => alert('Offert'), style: { backgroundColor: '#4E4E4E', color: 'white' }},
+        { text: 'SomeString', onPress: () => alert('SomeString'), style: { backgroundColor: '#4E4E4E', color: 'white' }},
         { text: (<i style={{fontSize: '3em'}} className="fa fa-mobile" aria-hidden="true"></i>), onPress: () => alert('Mobile'), style: { backgroundColor: '#7979e4', color: 'white' }}
       ]
+
+      right.push({
+          text: (
+            <i style={{ flex: '1' }} className="material-icons">card_giftcard</i>
+            ),
+          onPress: () => console.log('new one clicked'),
+          style: {cursor: 'pointer', backgroundColor: 'green', color: 'white' }
+        });
 
     return {
       left,
@@ -79,6 +91,11 @@ class Example extends React.Component {
       onOpen,
       onClose
     };
+  }
+
+  toggleMountOfThird = () => {
+    console.log('called');
+    this.setState((state) => ({ toggle: !state.toggle }));
   }
 
   render() {
@@ -100,6 +117,11 @@ class Example extends React.Component {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', backgroundColor: '#42404C', overflow: 'hidden' }}>
         <div style={{ color: '#FFF', fontWeight: 'bold', fontSize: '2.5em', margin: '2% 0'}}>react-button-actions demo : </div>
 
+        <div style={{ cursor: 'pointer', color: '#599FFF', backgroundColor: '#FAFAFA', padding: '1% 2%', margin: '2% 0' }} onClick={this.toggleMountOfThird} >
+          Mount/Dismount Element 3
+        </div>
+
+
         <ButtonActions
           autoclose
           onPress={() => console.log('callback 1 on touch')}
@@ -112,6 +134,7 @@ class Example extends React.Component {
         <br />
 
         <div style={{ width: '50%' }}>
+        {this.state.toggle !== true &&
           <ButtonActions
             autoclose
             onPress={() => console.log('callback 3 on touch')}
@@ -119,6 +142,7 @@ class Example extends React.Component {
           >
             {element3}
           </ButtonActions>
+        }
         </div>
       </div>
     );

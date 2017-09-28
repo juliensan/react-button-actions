@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import Hammer from 'hammerjs';
 
 import CoreSwipe from './CoreSwipe';
@@ -132,8 +133,8 @@ class ButtonActions extends CoreSwipe {
   }
 
   translateOverlay(value) {
-    if (this.refs.overlay) {
-      this.refs.overlay.style.transform = `translate3d(${value}px,0px,0px)`;
+    if (this.overlay) {
+      this.overlay.style.transform = `translate3d(${value}px,0px,0px)`;
     }
 
   }
@@ -197,12 +198,18 @@ class ButtonActions extends CoreSwipe {
     return !!left || !!right ;
   }
 
-  resetEvents() {
+  resetSwipeEvents() {
     const eventsString = Object.keys(this.bindedEvents).join(' ');
-    // console.log('ds', eventsString);
-    // console.log('hammer : ', this.hammer);
-    // console.log('disbinding events');
     this.hammer.off(eventsString);
+  }
+
+  resetTapEvents() {
+    this.containerHammer.off('tap');
+  }
+
+  resetEvents() {
+    this.resetTapEvents();
+    this.resetSwipeEvents()
   }
 
   registerEvent(eventName) {
@@ -235,8 +242,12 @@ class ButtonActions extends CoreSwipe {
   initTouchEvents() {
     // console.log('has events : ', this.hasEvents());
     if (this.hasEvents()) {
-      // console.log('binding hammer', this.refs.overlay);
-      this.hammer = new Hammer(this.refs.overlay);
+      this.containerHammer = new Hammer(this.container);
+      this.containerHammer.add(new Hammer.Tap());
+      this.containerHammer.on('tap', this.handleContainerClick);
+
+      // console.log('binding hammer', this.overlay);
+      this.hammer = new Hammer(this.overlay);
       this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
       this.initEventsFromProps();
@@ -246,7 +257,7 @@ class ButtonActions extends CoreSwipe {
   initSizes() {
     this.overlayWidth = this.refs.childrenContainer.offsetWidth;
 
-    this.refs.overlay.style.width = `${this.overlayWidth}px`;
+    this.overlay.style.width = `${this.overlayWidth}px`;
 
     const { leftLength, rightLength } = this.getNbButtons();
     this.btnsLeftWidth = (this.overlayWidth / 4.5) * leftLength;
@@ -330,19 +341,26 @@ class ButtonActions extends CoreSwipe {
     this.resetOverlay();
   }
 
+  bindOverlayRef = (c) => {
+    this.overlay = c;
+  }
+
+  bindContainerRef = (c) => {
+    this.container = c;
+  }
+
   render() {
     const children = React.cloneElement(this.props.children, {...this.childrenProps});
     const mergedSwipeContainerStyles = {
       ...this.styles.baseSwipeContainerStyles,
       ...this.props.style
     };
-
+    // onClick={this.handleContainerClick}
     return (
-      <div onTouchTap={this.handleContainerClick} className="swipeContainer" style={mergedSwipeContainerStyles}>
-
+      <div ref={this.bindContainerRef} className="swipeContainer" style={mergedSwipeContainerStyles}>
         {this.renderButtons()}
 
-        <div style={this.styles.overlayStyles} className="swipeOverlay" ref="overlay">
+        <div style={this.styles.overlayStyles} className="swipeOverlay" ref={this.bindOverlayRef}>
           <div className="childrenContainer" ref="childrenContainer">
             {children}
           </div>
