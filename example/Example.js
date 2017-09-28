@@ -90,7 +90,7 @@ class Example extends React.Component {
     );
 
     const element3 = (
-      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#ab75ff', color: '#FFF' }} >
+      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#ab75ff', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 3</div>
       </div>
     );
@@ -110,13 +110,16 @@ class Example extends React.Component {
         <br />
           <Element2 swipes={{...this.generateSwipes(2)}} />
         <br />
-        <ButtonActions
-          autoclose
-          onPress={() => console.log('callback 3 on touch')}
-          {...this.generateSwipes(3)}
-        >
-          {element3}
-        </ButtonActions>
+
+        <div style={{ width: '50%' }}>
+          <ButtonActions
+            autoclose
+            onPress={() => console.log('callback 3 on touch')}
+            {...this.generateSwipes(3)}
+          >
+            {element3}
+          </ButtonActions>
+        </div>
       </div>
     );
   }
