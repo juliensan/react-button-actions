@@ -224,16 +224,10 @@ class ButtonActions extends CoreSwipe {
       this.registerEvent('panstart');
       this.hammer.on('panstart', this.onPanStart);
       this.hammer.on('panend', this.onPanEnd);
-    }
 
-    if (events.right) {
-      // console.log('binding pan left');
       this.registerEvent('panleft');
       this.hammer.on('panleft', this.onLeftPan);
-    }
 
-    if (events.left) {
-      // console.log('binding pan right ho');
       this.registerEvent('panright');
       this.hammer.on('panright', this.onRightPan);
     }
