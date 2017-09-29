@@ -1,13 +1,12 @@
 {
   "name": "react-button-actions",
-  "version": "0.0.9",
+  "version": "0.9.0",
   "description": "Performant HoC designed to make buttons appear on swipe and others actions on some element.",
   "main": "dist/index",
   "scripts": {
     "start": "node_modules/.bin/webpack-dev-server --inline --port 8000 -w --progress --colors --config compilers/webpack.ds.js",
     "build": "NODE_ENV=production node_modules/.bin/webpack -p --config compilers/webpack.build.js",
-    "build:watch": "NODE_ENV=production node_modules/.bin/webpack -p -w --config compilers/webpack.build.js",
-    "prepublish": "npm run build"
+    "build:watch": "NODE_ENV=production node_modules/.bin/webpack -p -w --config compilers/webpack.build.js"
   },
   "keywords": [
     "react",
