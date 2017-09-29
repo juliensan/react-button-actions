@@ -15,6 +15,8 @@ class ButtonActions extends CoreSwipe {
     onPress: PropTypes.func,
     autoclose: PropTypes.bool,
     style: PropTypes.object,
+    linked: PropTypes.bool,
+    fullwidth: PropTypes.bool,
     left: PropTypes.array,
     right: PropTypes.array,
     onOpen: PropTypes.func,
@@ -29,12 +31,14 @@ class ButtonActions extends CoreSwipe {
     this.btnsRightWidth = 0;
     this.bindedEvents = {};
     this.childrenProps = {};
-    this.isLinkedToOthers = props.linkToOtherSwipes !== false;
-    this.isFullWidth = props.fullWidthButtons === true;
     this.shouldShowRight = false;
     this.shouldShowLeft = false;
     this.leftIsVisible = false;
     this.rightIsVisible = false;
+
+    this.shouldCloseAutomatically = props.autoclose !== false;
+    this.isLinkedToOthers = props.linked !== false;
+    this.isFullWidth = props.fullwidth === true;
 
     this.initBindings();
     this.treshold = 0;
@@ -175,10 +179,6 @@ class ButtonActions extends CoreSwipe {
     this.transformButtons(dist);
   }
 
-  onPressUp() {
-
-  }
-
   getEvents() {
     const { left, right, onOpen, onClose } = this.props;
 
@@ -278,7 +278,7 @@ class ButtonActions extends CoreSwipe {
 
     const { leftLength, rightLength } = this.getNbButtonsBySide();
     if (leftLength > 1 || rightLength > 1) {
-      console.error('element : ', this);
+      console.error('react-action-buttons element : ', this);
       throw new Error('^^^^^^ react-action-buttons : Can\'t make a fullWidth swipe with more than 1 item');
     }
 
@@ -287,8 +287,7 @@ class ButtonActions extends CoreSwipe {
 
 
   constraintsAreValid() {
-    const fullWidthIsValid = this.checkFullWidthConstraints();
-    return fullWidthIsValid;
+    return this.checkFullWidthConstraints();
   }
 
   componentDidMount() {
@@ -301,7 +300,7 @@ class ButtonActions extends CoreSwipe {
 
   handleBtnClick(action) {
     // console.log('action clicked : ', action);
-    this.resetOverlay();
+    if (this.shouldCloseAutomatically) this.resetOverlay();
   }
 
   renderLeftButtons() {
@@ -354,7 +353,7 @@ class ButtonActions extends CoreSwipe {
     if (this.props.onPress) {
       this.props.onPress.call();
     }
-    this.resetOverlay();
+    if (this.shouldCloseAutomatically) this.resetOverlay();
   }
 
   bindOverlayRef = (c) => {

@@ -118,12 +118,22 @@ class Example extends React.Component {
      this.button = component;
   }
 
+  bindFullWidthButton2 = (component) => {
+    this.button2 = component;
+  }
+
   toggleMountOfThird = () => {
     console.log('called');
     this.setState((state) => ({ toggle: !state.toggle }));
   }
-  closeElementFour = () => {
+  updateElementFour = () => {
+    this.button.update();
+  }
+  closeElementFullWidth = () => {
     this.button.close();
+  }
+  closeElementFour = () => {
+    this.button2.close();
   }
 
   render() {
@@ -146,17 +156,30 @@ class Example extends React.Component {
       </div>
     );
 
+    const element4 = (
+      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#d47676', color: '#FFF' }} >
+        <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 4</div>
+      </div>
+    );
+
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', backgroundColor: '#42404C', overflow: 'hidden' }}>
         <div style={{ color: '#FFF', fontWeight: 'bold', fontSize: '2.5em', margin: '2% 0'}}>react-button-actions demo : </div>
 
-        <div style={{ cursor: 'pointer', color: '#599FFF', backgroundColor: '#FAFAFA', padding: '1% 2%', margin: '2% 0' }} onClick={this.toggleMountOfThird} >
-          Mount/Dismount Element 3
-        </div>
+        <div style={{ marginBottom: '3%', display :'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+          <div style={{ textAlign: 'center', flex: '4', cursor: 'pointer', color: '#599FFF', backgroundColor: '#FAFAFA', padding: '1% 2%' }} onClick={this.toggleMountOfThird} >
+            Mount/Dismount Element 3
+          </div>
+          <div style={{flex: 1}}>&nbsp;</div>
+          <div style={{ textAlign: 'center', flex: '4', cursor: 'pointer', color: '#599FFF', backgroundColor: '#FAFAFA', padding: '1% 2%' }} onClick={this.closeElementFullWidth} >
+            Close Button Full Width programmatically
+          </div>
+          <div style={{flex: 1}}>&nbsp;</div>
+          <div style={{ textAlign: 'center', flex: '4', cursor: 'pointer', color: '#599FFF', backgroundColor: '#FAFAFA', padding: '1% 2%' }} onClick={this.closeElementFour} >
+            Close Button 4 programmatically
+          </div>
 
-        <div style={{ cursor: 'pointer', color: '#599FFF', backgroundColor: '#FAFAFA', padding: '1% 2%', margin: '2% 0' }} onClick={this.closeElementFour} >
-          Close button programmatically
         </div>
 
 
@@ -184,12 +207,25 @@ class Example extends React.Component {
         <div style={{ width: '50%' }}>
           <ButtonActions
             ref={this.bindFullWidthButton}
-            fullWidthButtons
-            linkToOtherSwipes={false}
+            fullwidth
+            linked={false}
             onPress={() => console.log('callback 4 on touch fullwidth element')}
             {...this.generateSwipesForFullElement()}
           >
             {elementFullWidth}
+          </ButtonActions>
+        </div>
+
+
+        <br />
+        <div style={{ width: '50%' }}>
+          <ButtonActions
+            ref={this.bindFullWidthButton2}
+            autoclose={false}
+            {...this.generateSwipes(3)}
+            onPress={() => console.log('callback 4 on touch fullwidth element')}
+          >
+            {element4}
           </ButtonActions>
         </div>
       </div>
