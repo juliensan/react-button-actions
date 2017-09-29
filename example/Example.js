@@ -5,7 +5,6 @@ class Element2 extends React.Component {
   render() {
     return (
       <ButtonActions
-          autoclose
           onPress={() => console.log('callback 2 on touch')}
           {...this.props.swipes}
         >
@@ -25,7 +24,29 @@ class Example extends React.Component {
   componentWillMount() {
     console.log('will mount')
   }
+  generateSwipesForFullElement() {
+    const onOpen = (val) => console.log('open', val);
+    const onClose = (val) => console.log('close', val);
+    return {
+      onOpen,
+      onClose,
+      left: [
+        {
+          text: (<i style={{fontSize: '3em'}} className="fa fa-cog fa-spin fa-3x fa-fw"></i>),
+          onPress: () => console.log('not loading'),
+          style: { backgroundColor: '#599FFF', color: 'white' }
+        }
+      ],
+      right: [
+        {
+          text: (<i style={{fontSize: '3em'}} className="fa fa-spinner fa-spin fa-3x fa-fw"></i>),
+          onPress: () => console.log('loading'),
+          style: { backgroundColor: '#599FFF', color: 'white' }
+        }
+      ]
+    };
 
+  }
   generateSwipes(modifier = false) {
     const onOpen = (val) => console.log('open', val);
     const onClose = (val) => console.log('close', val);
@@ -93,9 +114,16 @@ class Example extends React.Component {
     };
   }
 
+  bindFullWidthButton = (component) => {
+     this.button = component;
+  }
+
   toggleMountOfThird = () => {
     console.log('called');
     this.setState((state) => ({ toggle: !state.toggle }));
+  }
+  closeElementFour = () => {
+    this.button.close();
   }
 
   render() {
@@ -112,6 +140,12 @@ class Example extends React.Component {
       </div>
     );
 
+    const elementFullWidth = (
+      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#76d4a5', color: '#FFF' }} >
+        <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 4 ( Full Width Swipe with ref ) </div>
+      </div>
+    );
+
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', backgroundColor: '#42404C', overflow: 'hidden' }}>
@@ -121,9 +155,12 @@ class Example extends React.Component {
           Mount/Dismount Element 3
         </div>
 
+        <div style={{ cursor: 'pointer', color: '#599FFF', backgroundColor: '#FAFAFA', padding: '1% 2%', margin: '2% 0' }} onClick={this.closeElementFour} >
+          Close button programmatically
+        </div>
+
 
         <ButtonActions
-          autoclose
           onPress={() => console.log('callback 1 on touch')}
           {...this.generateSwipes()}
         >
@@ -136,13 +173,24 @@ class Example extends React.Component {
         <div style={{ width: '50%' }}>
         {this.state.toggle !== true &&
           <ButtonActions
-            autoclose
             onPress={() => console.log('callback 3 on touch')}
             {...this.generateSwipes(3)}
           >
             {element3}
           </ButtonActions>
         }
+        </div>
+      <br />
+        <div style={{ width: '50%' }}>
+          <ButtonActions
+            ref={this.bindFullWidthButton}
+            fullWidthButtons
+            linkToOtherSwipes={false}
+            onPress={() => console.log('callback 4 on touch fullwidth element')}
+            {...this.generateSwipesForFullElement()}
+          >
+            {elementFullWidth}
+          </ButtonActions>
         </div>
       </div>
     );

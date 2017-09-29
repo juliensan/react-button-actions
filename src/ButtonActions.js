@@ -29,7 +29,8 @@ class ButtonActions extends CoreSwipe {
     this.btnsRightWidth = 0;
     this.bindedEvents = {};
     this.childrenProps = {};
-
+    this.isLinkedToOthers = props.linkToOtherSwipes !== false;
+    this.isFullWidth = props.fullWidthButtons === true;
     this.shouldShowRight = false;
     this.shouldShowLeft = false;
     this.leftIsVisible = false;
@@ -61,6 +62,10 @@ class ButtonActions extends CoreSwipe {
 
   onPanStart(evt) {
     this.panStartDelta = evt.deltaX;
+  }
+
+  close = () => {
+    this.resetOverlay();
   }
 
   resetOverlay() {
@@ -148,7 +153,7 @@ class ButtonActions extends CoreSwipe {
 
   onOpen() {
     if (this.props.onOpen) this.props.onOpen.call();
-    this.closeSwipes(this.swipeId);
+    if (this.isLinkedToOthers) this.closeSwipes(this.swipeId);
   }
 
   onClose() {
@@ -185,7 +190,7 @@ class ButtonActions extends CoreSwipe {
     };
   }
 
-  getNbButtons() {
+  getNbButtonsBySide() {
     const { left, right } = this.getEvents();
     return {
       leftLength: (left && left.length) ? left.length : 0,
@@ -201,10 +206,12 @@ class ButtonActions extends CoreSwipe {
   resetSwipeEvents() {
     const eventsString = Object.keys(this.bindedEvents).join(' ');
     this.hammer.off(eventsString);
+    this.hammer.destroy();
   }
 
   resetTapEvents() {
     this.containerHammer.off('tap');
+    this.containerHammer.destroy();
   }
 
   resetEvents() {
@@ -234,18 +241,15 @@ class ButtonActions extends CoreSwipe {
   }
 
   initTouchEvents() {
-    // console.log('has events : ', this.hasEvents());
-    if (this.hasEvents()) {
-      this.containerHammer = new Hammer(this.container);
-      this.containerHammer.add(new Hammer.Tap());
-      this.containerHammer.on('tap', this.handleContainerClick);
+    this.containerHammer = new Hammer(this.container);
+    this.containerHammer.add(new Hammer.Tap());
+    this.containerHammer.on('tap', this.handleContainerClick);
 
-      // console.log('binding hammer', this.overlay);
-      this.hammer = new Hammer(this.overlay);
-      this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL });
+    // console.log('binding hammer', this.overlay);
+    this.hammer = new Hammer(this.overlay);
+    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
-      this.initEventsFromProps();
-    }
+    this.initEventsFromProps();
   }
 
   initSizes() {
@@ -253,9 +257,10 @@ class ButtonActions extends CoreSwipe {
 
     this.overlay.style.width = `${this.overlayWidth}px`;
 
-    const { leftLength, rightLength } = this.getNbButtons();
-    this.btnsLeftWidth = (this.overlayWidth / 4.5) * leftLength;
-    this.btnsRightWidth = (this.overlayWidth / 4.5) * rightLength;
+    const { leftLength, rightLength } = this.getNbButtonsBySide();
+
+    this.btnsLeftWidth = (this.isFullWidth && leftLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * leftLength;
+    this.btnsRightWidth = (this.isFullWidth && rightLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * rightLength;
 
     if (this.refs.rightBtnContainer) {
       this.refs.rightBtnContainer.style.width = `${this.btnsRightWidth}px`;
@@ -268,13 +273,30 @@ class ButtonActions extends CoreSwipe {
     this.treshold = Math.round(this.overlayWidth / 4.5);
   }
 
+  checkFullWidthConstraints() {
+    if (this.isFullWidth === false) return true;
+
+    const { leftLength, rightLength } = this.getNbButtonsBySide();
+    if (leftLength > 1 || rightLength > 1) {
+      console.error('element : ', this);
+      throw new Error('^^^^^^ react-action-buttons : Can\'t make a fullWidth swipe with more than 1 item');
+    }
+
+    return true;
+  }
+
+
+  constraintsAreValid() {
+    const fullWidthIsValid = this.checkFullWidthConstraints();
+    return fullWidthIsValid;
+  }
+
   componentDidMount() {
-    // console.group('On did mount Swipe');
-    // linking hammer ref content
-    this.initTouchEvents();
-    this.initSizes();
-    this.registerSwipe(this.swipeId, this.resetOverlay);
-    // console.groupEnd();
+    if (this.hasEvents() && this.constraintsAreValid()) {
+      this.initTouchEvents();
+      this.initSizes();
+      if (this.isLinkedToOthers) this.registerSwipe(this.swipeId, this.resetOverlay);
+    }
   }
 
   handleBtnClick(action) {
