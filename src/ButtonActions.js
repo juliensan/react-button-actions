@@ -17,6 +17,11 @@ class ButtonActions extends CoreSwipe {
     style: PropTypes.object,
     linked: PropTypes.bool,
     fullwidth: PropTypes.bool,
+    updateKey: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+      PropTypes.bool
+    ]),
     left: PropTypes.array,
     right: PropTypes.array,
     onOpen: PropTypes.func,
@@ -59,9 +64,13 @@ class ButtonActions extends CoreSwipe {
     this.handleContainerClick = this.handleContainerClick.bind(this);
   }
 
-  componentWillUnmount() {
+  deinitialize = () => {
     this.unRegisterSwipe(this.swipeId);
     this.resetEvents();
+  }
+
+  componentWillUnmount() {
+    this.deinitialize();
   }
 
   onPanStart(evt) {
@@ -72,15 +81,19 @@ class ButtonActions extends CoreSwipe {
     this.resetOverlay();
   }
 
+  resetButtons = () => {
+    this.translateOverlay(0);
+    this.transformLeftButton(0);
+    this.transformRightButton(0);
+    this.leftIsVisible = false;
+    this.rightIsVisible = false;
+  }
+
   resetOverlay() {
     if (this.leftIsVisible || this.rightIsVisible) {
       // console.log('reset overlay for : ', this.swipeId);
       this.onClose();
-      this.translateOverlay(0);
-      this.transformLeftButton(0);
-      this.transformRightButton(0);
-      this.leftIsVisible = false;
-      this.rightIsVisible = false;
+      this.resetButtons();
     }
   }
 
@@ -253,7 +266,7 @@ class ButtonActions extends CoreSwipe {
   }
 
   initSizes() {
-    this.overlayWidth = this.refs.childrenContainer.offsetWidth;
+    this.overlayWidth = this.container.offsetWidth;
 
     this.overlay.style.width = `${this.overlayWidth}px`;
 
@@ -290,12 +303,16 @@ class ButtonActions extends CoreSwipe {
     return this.checkFullWidthConstraints();
   }
 
-  componentDidMount() {
+  initialize = () => {
     if (this.hasEvents() && this.constraintsAreValid()) {
       this.initTouchEvents();
       this.initSizes();
       if (this.isLinkedToOthers) this.registerSwipe(this.swipeId, this.resetOverlay);
     }
+  }
+
+  componentDidMount() {
+    this.initialize();
   }
 
   handleBtnClick(action) {
@@ -364,21 +381,32 @@ class ButtonActions extends CoreSwipe {
     this.container = c;
   }
 
+  update() {
+    this.initSizes();
+    this.resetButtons();
+  }
+
+  /**
+   * trigger an automatic render update if updateKey is different
+   *
+   * @param {Object} nomVariable - desciption
+   * @return {Boolean} Boolean
+   */
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.updateKey !== this.props.updateKey) this.update();
+  }
+
   render() {
-    const children = React.cloneElement(this.props.children, {...this.childrenProps});
     const mergedSwipeContainerStyles = {
       ...this.styles.baseSwipeContainerStyles,
       ...this.props.style
     };
-    // onClick={this.handleContainerClick}
     return (
       <div ref={this.bindContainerRef} className="swipeContainer" style={mergedSwipeContainerStyles}>
         {this.renderButtons()}
 
         <div style={this.styles.overlayStyles} className="swipeOverlay" ref={this.bindOverlayRef}>
-          <div className="childrenContainer" ref="childrenContainer">
-            {children}
-          </div>
+          {React.cloneElement(this.props.children)}
         </div>
       </div>
     );

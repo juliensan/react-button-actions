@@ -19,7 +19,7 @@ class Element2 extends React.Component {
 class Example extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { toggle : false }
+    this.state = { toggle : false, updateKey: false };
   }
   componentWillMount() {
     console.log('will mount')
@@ -126,14 +126,17 @@ class Example extends React.Component {
     console.log('called');
     this.setState((state) => ({ toggle: !state.toggle }));
   }
-  updateElementFour = () => {
-    this.button.update();
-  }
+
   closeElementFullWidth = () => {
     this.button.close();
   }
   closeElementFour = () => {
     this.button2.close();
+  }
+
+  resetOverlay = () => {
+    this.setState((state) => ({ updateKey: !state.updateKey }));
+    // this.button.update();
   }
 
   render() {
@@ -204,10 +207,12 @@ class Example extends React.Component {
         }
         </div>
       <br />
+
         <div style={{ width: '50%' }}>
           <ButtonActions
             ref={this.bindFullWidthButton}
             fullwidth
+            updateKey={this.state.updateKey}
             linked={false}
             onPress={() => console.log('callback 4 on touch fullwidth element')}
             {...this.generateSwipesForFullElement()}
@@ -228,6 +233,12 @@ class Example extends React.Component {
             {element4}
           </ButtonActions>
         </div>
+
+        <div onClick={this.resetOverlay} className="testReset" style={{ width: '200px', lineHeight: '50px', height: '50px', border: '1px solid white', margin: '30px auto', textAlign: 'center', color: 'white'}} >
+          Reset
+        </div>
+
+
       </div>
     );
   }
