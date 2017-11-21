@@ -19,7 +19,7 @@ class Element2 extends React.Component {
 class Example extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { toggle : false, updateKey: false };
+    this.state = { toggle : false, updateKey: false, containerWidth: '800px' };
   }
   componentWillMount() {
     console.log('will mount')
@@ -122,6 +122,10 @@ class Example extends React.Component {
     this.button2 = component;
   }
 
+  bindFullWidthButton5 = (component) => {
+    this.button5 = component;
+  }
+
   toggleMountOfThird = () => {
     console.log('called');
     this.setState((state) => ({ toggle: !state.toggle }));
@@ -134,9 +138,14 @@ class Example extends React.Component {
     this.button2.close();
   }
 
-  resetOverlay = () => {
+  refreshChangedWidth = () => {
     this.setState((state) => ({ updateKey: !state.updateKey }));
     // this.button.update();
+  }
+
+  toggleAndRefresh = () => {
+    this.setState((state) => ({ containerWidth: (state.containerWidth) === '500px' ? '800px' : '500px' }));
+    // setTimeout(() => this.button5.update(), 400);
   }
 
   render() {
@@ -159,6 +168,12 @@ class Example extends React.Component {
       </div>
     );
 
+    const elementChangeWidth = (
+      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: 'rgb(185, 0, 154)', color: '#FFF' }} >
+        <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 4 ( Full Width Swipe with ref ) </div>
+      </div>
+    );
+
     const element4 = (
       <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#d47676', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 4</div>
@@ -167,7 +182,7 @@ class Example extends React.Component {
 
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', backgroundColor: '#42404C', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#42404C', overflow: 'hidden' }}>
         <div style={{ color: '#FFF', fontWeight: 'bold', fontSize: '2.5em', margin: '2% 0'}}>react-button-actions demo : </div>
 
         <div style={{ marginBottom: '3%', display :'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -232,13 +247,26 @@ class Example extends React.Component {
           >
             {element4}
           </ButtonActions>
+          <div onClick={this.refreshChangedWidth} className="testReset" style={{ width: '200px', border: '1px dotted white', margin: '30px auto', textAlign: 'center', color: 'white', padding: '5px' }} >
+            Refresh Decorated element 4 ( click after resize of window )
+          </div>
         </div>
 
-        <div onClick={this.resetOverlay} className="testReset" style={{ width: '200px', lineHeight: '50px', height: '50px', border: '1px solid white', margin: '30px auto', textAlign: 'center', color: 'white'}} >
-          Reset
+
+        <div style={{ margin: '40px auto', width: this.state.containerWidth }} >
+
+          <ButtonActions
+            updateKey={this.state.containerWidth}
+            {...this.generateSwipesForFullElement()}
+          >
+            {elementChangeWidth}
+          </ButtonActions>
+
+        <div onClick={this.toggleAndRefresh} className="testReset" style={{ width: '200px', border: '1px dotted white', margin: '30px auto', textAlign: 'center', color: 'white', padding: '5px' }} >
+          Update container width & Trigger update on swipe
         </div>
 
-
+        </div>
       </div>
     );
   }

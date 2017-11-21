@@ -267,7 +267,6 @@ class ButtonActions extends CoreSwipe {
 
   initSizes() {
     this.overlayWidth = this.container.offsetWidth;
-
     this.overlay.style.width = `${this.overlayWidth}px`;
 
     const { leftLength, rightLength } = this.getNbButtonsBySide();
@@ -306,7 +305,7 @@ class ButtonActions extends CoreSwipe {
   initialize = () => {
     if (this.hasEvents() && this.constraintsAreValid()) {
       this.initTouchEvents();
-      this.initSizes();
+      requestAnimationFrame(() => this.initSizes());
       if (this.isLinkedToOthers) this.registerSwipe(this.swipeId, this.resetOverlay);
     }
   }
@@ -382,7 +381,7 @@ class ButtonActions extends CoreSwipe {
   }
 
   update() {
-    this.initSizes();
+    requestAnimationFrame(() => this.initSizes());
     this.resetButtons();
   }
 
