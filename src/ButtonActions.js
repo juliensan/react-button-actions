@@ -41,6 +41,10 @@ class ButtonActions extends CoreSwipe {
     this.leftIsVisible = false;
     this.rightIsVisible = false;
 
+    this.currentRightDistance = false;
+    this.currentLeftDistance = false;
+
+
     this.shouldCloseAutomatically = props.autoclose !== false;
     this.isLinkedToOthers = props.linked !== false;
     this.isFullWidth = props.fullwidth === true;
@@ -88,13 +92,20 @@ class ButtonActions extends CoreSwipe {
     this.leftIsVisible = false;
     this.rightIsVisible = false;
   }
+  isOverlayTransformed = () => {
+    return this.overlay.style.transform !== 'translate3d(0px, 0px, 0px)';
+  }
 
   resetOverlay() {
+    console.log('this.overlay.style.transform', this.overlay.style.transform);
     if (this.leftIsVisible || this.rightIsVisible) {
       // console.log('reset overlay for : ', this.swipeId);
       this.onClose();
-      this.resetButtons();
     }
+    this.currentLeftDistance = false;
+    this.currentRightDistance = false;
+
+    if (this.isOverlayTransformed()) this.resetButtons();
   }
 
   showRightMenu() {
@@ -118,8 +129,13 @@ class ButtonActions extends CoreSwipe {
   }
 
   onPanEnd(evt) {
-    this.shouldShowRight = (this.refs.rightBtnContainer &&  evt.deltaX < 0 && evt.distance > this.treshold);
+    this.shouldShowRight = (this.refs.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.treshold);
     this.shouldShowLeft = (this.refs.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.treshold);
+
+    console.group('on end ')
+    console.log('this.shouldShowRight', this.shouldShowRight);
+    console.log('this.shouldShowLeft', this.shouldShowLeft);
+    console.groupEnd();
 
     if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
 
@@ -129,6 +145,7 @@ class ButtonActions extends CoreSwipe {
   }
 
   transformButtons(distance) {
+
     const lefty = (distance > 0);
     const dist = (lefty) ? distance : distance * -1;
 
@@ -162,10 +179,26 @@ class ButtonActions extends CoreSwipe {
   }
 
   onLeftPan(evt) {
+    // TODO
+    // quand je glisse vers la gauche,
+    //  j'enregistre le mouvement en cours left: XXX ,
+    //  et j'empeche si il y a mouvement à droite d'aller plus loin que cette valeur
+
+
+
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.max(dist, this.btnsRightWidth * - 1);
-    this.translateOverlay(value);
-    this.transformButtons(dist);
+    console.log('left value ', value);
+    if (this.currentRightDistance !== false) {
+      console.group('INVERT RIGHT');
+      console.log('this.currentRightDistance', this.currentRightDistance)
+      console.log('value', value)
+      console.groupEnd();
+    } else {
+      this.currentLeftDistance = value;
+      this.translateOverlay(value);
+      this.transformButtons(value);
+    }
   }
 
   onOpen() {
@@ -186,10 +219,28 @@ class ButtonActions extends CoreSwipe {
   }
 
   onRightPan(evt) {
+    // TODO
+    // quand je glisse vers la droite,
+    //  j'enregistre le mouvement en cours right: XXX ,
+    //  et j'empeche si il y a mouvement à gauche d'aller plus loin que cette valeur
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.min(dist, this.btnsLeftWidth);
-    this.translateOverlay(value);
-    this.transformButtons(dist);
+    console.log('right value ', value);
+    if (this.currentLeftDistance !== false) {
+      // ON NE PEUT PAS ALLER LEFT PLUS QUE LA VALEUR PARCOURUE
+      console.group('INVERT LEFT');
+      console.log('this.currentLeftDistance', this.currentLeftDistance)
+      console.log('value', value)
+      console.groupEnd();
+      this.currentRightDistance = value;
+      this.translateOverlay(value);
+      this.transformButtons(value);
+
+    } else {
+      this.currentRightDistance = value;
+      this.translateOverlay(value);
+      this.transformButtons(value);
+    }
   }
 
   getEvents() {
@@ -265,7 +316,7 @@ class ButtonActions extends CoreSwipe {
     this.initEventsFromProps();
   }
 
-  initSizes() {
+  debouncedInitSizes = () => {
     this.overlayWidth = this.container.offsetWidth;
     this.overlay.style.width = `${this.overlayWidth}px`;
 
@@ -283,6 +334,14 @@ class ButtonActions extends CoreSwipe {
     }
 
     this.treshold = Math.round(this.overlayWidth / 4.5);
+  }
+
+  initSizes = () => {
+    if (this.container) {
+      this.debouncedInitSizes();
+    } else {
+      requestAnimationFrame(this.initSizes);
+    }
   }
 
   checkFullWidthConstraints() {
