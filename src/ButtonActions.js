@@ -89,8 +89,8 @@ class ButtonActions extends CoreSwipe {
     this.translateOverlay(0);
     this.transformLeftButton(0);
     this.transformRightButton(0);
-    this.leftIsVisible = false;
-    this.rightIsVisible = false;
+    // this.leftIsVisible = false;
+    // this.rightIsVisible = false;
   }
 
   isOverlayTransformed = () => {
@@ -103,6 +103,8 @@ class ButtonActions extends CoreSwipe {
     }
     this.currentLeftDistance = false;
     this.currentRightDistance = false;
+    this.leftIsVisible = false;
+    this.rightIsVisible = false;
 
     if (this.isOverlayTransformed()) this.resetButtons();
   }
@@ -128,8 +130,8 @@ class ButtonActions extends CoreSwipe {
   }
 
   onPanEnd(evt) {
-    this.shouldShowRight = (this.refs.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.treshold);
-    this.shouldShowLeft = (this.refs.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.treshold);
+    this.shouldShowRight = (this.leftIsVisible === false && this.refs.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.treshold);
+    this.shouldShowLeft = (this.rightIsVisible === false && this.refs.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.treshold);
 
     if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
 
@@ -177,7 +179,10 @@ class ButtonActions extends CoreSwipe {
     const value = Math.max(dist, this.btnsRightWidth * - 1);
 
     if (this.currentRightDistance !== false) {
-      const correctedValue = Math.min(value, this.currentRightDistance);
+      const correctedValue = (this.leftIsVisible)
+        ? Math.max(value, 0)
+        : Math.min(value, this.currentRightDistance);
+
       this.currentLeftDistance = correctedValue;
       this.translateOverlay(correctedValue);
       this.transformButtons(correctedValue);
