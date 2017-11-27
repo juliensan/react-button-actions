@@ -1,6 +1,30 @@
 import React from 'react';
 import ButtonActions from '../src/ButtonActions';
 
+class LazyElement extends React.Component {
+  state = {};
+  renderLate = () => {
+    this.setState({ myChild: this.props.children});
+  }
+  callMyChild = () => {
+    setTimeout(this.renderLate, 1000);
+  }
+  renderMyChildren() {
+    this.callMyChild();
+
+    return (this.state.myChild) ? this.state.myChild : 'loading';
+  }
+  render() {
+    return (
+      <div>
+        {this.renderMyChildren()}
+      </div>
+    );
+  }
+};
+
+
+
 class Element2 extends React.Component {
   render() {
     return (
@@ -259,7 +283,9 @@ class Example extends React.Component {
             updateKey={this.state.containerWidth}
             {...this.generateSwipesForFullElement()}
           >
-            {elementChangeWidth}
+            <LazyElement>
+              {elementChangeWidth}
+            </LazyElement>
           </ButtonActions>
 
         <div onClick={this.toggleAndRefresh} className="testReset" style={{ width: '200px', border: '1px dotted white', margin: '30px auto', textAlign: 'center', color: 'white', padding: '5px' }} >
