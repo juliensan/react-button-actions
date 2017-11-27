@@ -179,21 +179,14 @@ class ButtonActions extends CoreSwipe {
   }
 
   onLeftPan(evt) {
-    // TODO
-    // quand je glisse vers la gauche,
-    //  j'enregistre le mouvement en cours left: XXX ,
-    //  et j'empeche si il y a mouvement à droite d'aller plus loin que cette valeur
-
-
-
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.max(dist, this.btnsRightWidth * - 1);
-    console.log('left value ', value);
+
     if (this.currentRightDistance !== false) {
-      console.group('INVERT RIGHT');
-      console.log('this.currentRightDistance', this.currentRightDistance)
-      console.log('value', value)
-      console.groupEnd();
+      const correctedValue = Math.min(value, this.currentRightDistance);
+      this.currentLeftDistance = correctedValue;
+      this.translateOverlay(correctedValue);
+      this.transformButtons(correctedValue);
     } else {
       this.currentLeftDistance = value;
       this.translateOverlay(value);
@@ -225,22 +218,19 @@ class ButtonActions extends CoreSwipe {
     //  et j'empeche si il y a mouvement à gauche d'aller plus loin que cette valeur
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.min(dist, this.btnsLeftWidth);
-    console.log('right value ', value);
     if (this.currentLeftDistance !== false) {
       // ON NE PEUT PAS ALLER LEFT PLUS QUE LA VALEUR PARCOURUE
-      console.group('INVERT LEFT');
-      console.log('this.currentLeftDistance', this.currentLeftDistance)
-      console.log('value', value)
-      console.groupEnd();
-      this.currentRightDistance = value;
-      this.translateOverlay(value);
-      this.transformButtons(value);
+      const correctedValue = Math.max(value, this.currentLeftDistance);
+      this.currentRightDistance = correctedValue;
+      this.translateOverlay(correctedValue);
+      this.transformButtons(correctedValue);
 
     } else {
       this.currentRightDistance = value;
       this.translateOverlay(value);
       this.transformButtons(value);
     }
+
   }
 
   getEvents() {
