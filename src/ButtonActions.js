@@ -92,14 +92,13 @@ class ButtonActions extends CoreSwipe {
     this.leftIsVisible = false;
     this.rightIsVisible = false;
   }
+
   isOverlayTransformed = () => {
     return this.overlay.style.transform !== 'translate3d(0px, 0px, 0px)';
   }
 
   resetOverlay() {
-    console.log('this.overlay.style.transform', this.overlay.style.transform);
     if (this.leftIsVisible || this.rightIsVisible) {
-      // console.log('reset overlay for : ', this.swipeId);
       this.onClose();
     }
     this.currentLeftDistance = false;
@@ -131,11 +130,6 @@ class ButtonActions extends CoreSwipe {
   onPanEnd(evt) {
     this.shouldShowRight = (this.refs.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.treshold);
     this.shouldShowLeft = (this.refs.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.treshold);
-
-    console.group('on end ')
-    console.log('this.shouldShowRight', this.shouldShowRight);
-    console.log('this.shouldShowLeft', this.shouldShowLeft);
-    console.groupEnd();
 
     if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
 
@@ -175,10 +169,10 @@ class ButtonActions extends CoreSwipe {
     if (this.overlay) {
       this.overlay.style.transform = `translate3d(${value}px,0px,0px)`;
     }
-
   }
 
   onLeftPan(evt) {
+    // left: dist < 0
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.max(dist, this.btnsRightWidth * - 1);
 
@@ -212,19 +206,14 @@ class ButtonActions extends CoreSwipe {
   }
 
   onRightPan(evt) {
-    // TODO
-    // quand je glisse vers la droite,
-    //  j'enregistre le mouvement en cours right: XXX ,
-    //  et j'empeche si il y a mouvement à gauche d'aller plus loin que cette valeur
     const dist = this.getMovement(evt.deltaX, evt.velocityX);
     const value = Math.min(dist, this.btnsLeftWidth);
+
     if (this.currentLeftDistance !== false) {
-      // ON NE PEUT PAS ALLER LEFT PLUS QUE LA VALEUR PARCOURUE
       const correctedValue = Math.max(value, this.currentLeftDistance);
       this.currentRightDistance = correctedValue;
       this.translateOverlay(correctedValue);
       this.transformButtons(correctedValue);
-
     } else {
       this.currentRightDistance = value;
       this.translateOverlay(value);
@@ -270,7 +259,7 @@ class ButtonActions extends CoreSwipe {
 
   resetEvents() {
     this.resetTapEvents();
-    this.resetSwipeEvents()
+    this.resetSwipeEvents();
   }
 
   registerEvent(eventName) {
