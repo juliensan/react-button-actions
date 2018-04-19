@@ -290,7 +290,7 @@ class Example extends React.Component {
           <ButtonActions
             ref={this.bindForRerender}
             doNotReRender={true}
-            // updateKey={this.state.containerWidth}
+            updateKey={this.state.containerWidth}
             {...this.generateSwipesForFullElement()}
           >
             <LazyElement>
