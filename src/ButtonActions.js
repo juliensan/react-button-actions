@@ -32,9 +32,19 @@ class ButtonActions extends CoreSwipe {
     super(props);
     this.styles = Styles.SwipeStyles;
     this.swipeId = Math.floor(Math.random() * 1000);
+    this.deactivateHorizontal = false;
+    this.state = {
+      forceRender: false
+    };
+    this.deactivateVertical = false;
+    this.sizeInitialized = false;
+    this.btnsLeftWidthCss = 100;
+    this.btnsRightWidthCss = 100;
     this.btnsLeftWidth = 0;
     this.btnsRightWidth = 0;
     this.bindedEvents = {};
+    this.bindedEventsVert = false;
+
     this.childrenProps = {};
     this.shouldShowRight = false;
     this.shouldShowLeft = false;
@@ -50,7 +60,7 @@ class ButtonActions extends CoreSwipe {
     this.isFullWidth = props.fullwidth === true;
 
     this.initBindings();
-    this.treshold = 0;
+    this.threshold = 0;
   }
 
   initBindings() {
@@ -58,8 +68,8 @@ class ButtonActions extends CoreSwipe {
     this.handleBtnClick = this.handleBtnClick.bind(this);
     this.showRightMenu = this.showRightMenu.bind(this);
     this.showLeftMenu = this.showLeftMenu.bind(this);
-    this.onPanStart = this.onPanStart.bind(this);
-    this.onPanEnd = this.onPanEnd.bind(this);
+    this.onHorizontalPanStart = this.onHorizontalPanStart.bind(this);
+    this.onHorizontalPanEnd = this.onHorizontalPanEnd.bind(this);
     this.initSizes = this.initSizes.bind(this);
     this.onLeftPan = this.onLeftPan.bind(this);
     this.onRightPan = this.onRightPan.bind(this);
@@ -77,8 +87,23 @@ class ButtonActions extends CoreSwipe {
     this.deinitialize();
   }
 
-  onPanStart(evt) {
-    this.panStartDelta = evt.deltaX;
+  onVerticalPanStart = (evt) => {
+    if (this.deactivateVertical === false && this.deactivateHorizontal === false) {
+      this.deactivateHorizontal = true;
+    }
+  }
+
+  onVerticalPanEnd = (evt) => {
+    if (this.deactivateHorizontal === true) {
+      this.deactivateHorizontal = false;
+    }
+  }
+
+  onHorizontalPanStart(evt) {
+    if (this.deactivateHorizontal === false) {
+      this.deactivateVertical = true;
+      this.panStartDelta = evt.deltaX;
+    }
   }
 
   close = () => {
@@ -97,8 +122,8 @@ class ButtonActions extends CoreSwipe {
     return this.overlay.style.transform !== 'translate3d(0px, 0px, 0px)';
   }
 
-  resetOverlay() {
-    if (this.leftIsVisible || this.rightIsVisible) {
+  resetOverlay(withDispatch = true) {
+    if (withDispatch && this.leftIsVisible || this.rightIsVisible) {
       this.onClose();
     }
     this.currentLeftDistance = false;
@@ -129,15 +154,18 @@ class ButtonActions extends CoreSwipe {
     this.onOpen();
   }
 
-  onPanEnd(evt) {
-    this.shouldShowRight = (this.leftIsVisible === false && this.refs.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.treshold);
-    this.shouldShowLeft = (this.rightIsVisible === false && this.refs.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.treshold);
+  onHorizontalPanEnd(evt) {
+    if (this.deactivateHorizontal === false) {
+      this.deactivateVertical = false;
+      this.shouldShowRight = (this.leftIsVisible === false && this.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.threshold);
+      this.shouldShowLeft = (this.rightIsVisible === false && this.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.threshold);
 
-    if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
+      if (!this.shouldShowRight && !this.shouldShowLeft) return this.resetOverlay();
 
-    if (this.shouldShowRight) return this.showRightMenu();
+      if (this.shouldShowRight) return this.showRightMenu();
 
-    if (this.shouldShowLeft) return this.showLeftMenu();
+      if (this.shouldShowLeft) return this.showLeftMenu();
+    }
   }
 
   transformButtons(distance) {
@@ -156,14 +184,14 @@ class ButtonActions extends CoreSwipe {
   }
 
   transformLeftButton(value) {
-    if (this.refs.leftBtnContainer) {
-      this.refs.leftBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
+    if (this.leftBtnContainer) {
+      this.leftBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
     }
   }
 
   transformRightButton(value) {
-    if (this.refs.rightBtnContainer) {
-      this.refs.rightBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
+    if (this.rightBtnContainer) {
+      this.rightBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
     }
   }
 
@@ -174,22 +202,24 @@ class ButtonActions extends CoreSwipe {
   }
 
   onLeftPan(evt) {
-    // left: dist < 0
-    const dist = this.getMovement(evt.deltaX, evt.velocityX);
-    const value = Math.max(dist, this.btnsRightWidth * - 1);
+    if (this.deactivateHorizontal === false) {
+      // left: dist < 0
+      const dist = this.getMovement(evt.deltaX, evt.velocityX);
+      const value = Math.max(dist, this.btnsRightWidth * - 1);
 
-    if (this.currentRightDistance !== false) {
-      const correctedValue = (this.leftIsVisible)
-        ? Math.max(value, 0)
-        : Math.min(value, this.currentRightDistance);
+      if (this.currentRightDistance !== false) {
+        const correctedValue = (this.leftIsVisible)
+          ? Math.max(value, 0)
+          : Math.min(value, this.currentRightDistance);
 
-      this.currentLeftDistance = correctedValue;
-      this.translateOverlay(correctedValue);
-      this.transformButtons(correctedValue);
-    } else {
-      this.currentLeftDistance = value;
-      this.translateOverlay(value);
-      this.transformButtons(value);
+        this.currentLeftDistance = correctedValue;
+        this.translateOverlay(correctedValue);
+        this.transformButtons(correctedValue);
+      } else {
+        this.currentLeftDistance = value;
+        this.translateOverlay(value);
+        this.transformButtons(value);
+      }
     }
   }
 
@@ -211,20 +241,21 @@ class ButtonActions extends CoreSwipe {
   }
 
   onRightPan(evt) {
-    const dist = this.getMovement(evt.deltaX, evt.velocityX);
-    const value = Math.min(dist, this.btnsLeftWidth);
+    if (this.deactivateHorizontal === false) {
+      const dist = this.getMovement(evt.deltaX, evt.velocityX);
+      const value = Math.min(dist, this.btnsLeftWidth);
 
-    if (this.currentLeftDistance !== false) {
-      const correctedValue = Math.max(value, this.currentLeftDistance);
-      this.currentRightDistance = correctedValue;
-      this.translateOverlay(correctedValue);
-      this.transformButtons(correctedValue);
-    } else {
-      this.currentRightDistance = value;
-      this.translateOverlay(value);
-      this.transformButtons(value);
+      if (this.currentLeftDistance !== false) {
+        const correctedValue = Math.max(value, this.currentLeftDistance);
+        this.currentRightDistance = correctedValue;
+        this.translateOverlay(correctedValue);
+        this.transformButtons(correctedValue);
+      } else {
+        this.currentRightDistance = value;
+        this.translateOverlay(value);
+        this.transformButtons(value);
+      }
     }
-
   }
 
   getEvents() {
@@ -255,6 +286,14 @@ class ButtonActions extends CoreSwipe {
     const eventsString = Object.keys(this.bindedEvents).join(' ');
     this.hammer.off(eventsString);
     this.hammer.destroy();
+    this.bindedEvents = {};
+    if (this.bindedEventsVert) {
+      const eventsStringVert = Object.keys(this.bindedEventsVert).join(' ');
+      this.hammerVertical.off(eventsStringVert);
+      this.hammerVertical.destroy();
+      this.bindedEventsVert = false;
+    }
+
   }
 
   resetTapEvents() {
@@ -266,9 +305,22 @@ class ButtonActions extends CoreSwipe {
     this.resetTapEvents();
     this.resetSwipeEvents();
   }
-
-  registerEvent(eventName) {
+  initBindedEvents2 = () => {
+    if (this.bindedEventsVert === false) this.bindedEventsVert = {};
+  }
+  registerEvent(eventName, second = false) {
+    if (second) {
+      this.initBindedEvents2();
+      this.bindedEventsVert[eventName] = true;
+    }
     this.bindedEvents[eventName] = true;
+  }
+
+  initVerticalBlocker = () => {
+    this.registerEvent('pandown', true);
+    this.registerEvent('panup', true);
+    this.hammerVertical.on('panstart', this.onVerticalPanStart);
+    this.hammerVertical.on('panend', this.onVerticalPanEnd);
   }
 
   initEventsFromProps() {
@@ -276,9 +328,13 @@ class ButtonActions extends CoreSwipe {
     // console.log('events', events);
     if (events.left || events.right) {
       // console.log('binding pan');
+      this.initVerticalBlocker();
+
       this.registerEvent('panstart');
-      this.hammer.on('panstart', this.onPanStart);
-      this.hammer.on('panend', this.onPanEnd);
+      this.hammer.on('panstart', this.onHorizontalPanStart);
+
+      this.registerEvent('panend');
+      this.hammer.on('panend', this.onHorizontalPanEnd);
 
       this.registerEvent('panleft');
       this.hammer.on('panleft', this.onLeftPan);
@@ -295,34 +351,46 @@ class ButtonActions extends CoreSwipe {
 
     // console.log('binding hammer', this.overlay);
     this.hammer = new Hammer(this.overlay);
-    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL });
-
+    this.hammerVertical = new Hammer(this.overlay);
+    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 20 });
+    this.hammerVertical.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL, threshold: 2 });
     this.initEventsFromProps();
   }
 
-  debouncedInitSizes = () => {
+  computeDomNodeWidths = () => {
+    if (this.container && this.container.offsetWidth === this.overlayWidth) return;
+
     this.overlayWidth = this.container.offsetWidth;
-    this.overlay.style.width = `${this.overlayWidth}px`;
+    // this.overlay.style.width = `${this.overlayWidth}px`;
 
     const { leftLength, rightLength } = this.getNbButtonsBySide();
 
     this.btnsLeftWidth = (this.isFullWidth && leftLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * leftLength;
     this.btnsRightWidth = (this.isFullWidth && rightLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * rightLength;
+    this.threshold = Math.round(this.overlayWidth / 4.5);
+  }
 
-    if (this.refs.rightBtnContainer) {
-      this.refs.rightBtnContainer.style.width = `${this.btnsRightWidth}px`;
+  applySizesOnce = () => {
+    if (this.sizeInitialized) return;
+
+    const { leftLength, rightLength } = this.getNbButtonsBySide();
+    this.btnsLeftWidthCss = (this.isFullWidth && leftLength) ? 100 : 23 * leftLength;
+    this.btnsRightWidthCss = (this.isFullWidth && rightLength) ? 100 : 23 * rightLength;
+
+    if (this.rightBtnContainer) {
+      this.rightBtnContainer.style.width = `${this.btnsRightWidthCss}%`;
     }
 
-    if (this.refs.leftBtnContainer) {
-      this.refs.leftBtnContainer.style.width  = `${this.btnsLeftWidth}px`;
+    if (this.leftBtnContainer) {
+      this.leftBtnContainer.style.width  = `${this.btnsLeftWidthCss}%`;
     }
-
-    this.treshold = Math.round(this.overlayWidth / 4.5);
+    this.sizeInitialized = true;
   }
 
   initSizes = () => {
     if (this.container) {
-      this.debouncedInitSizes();
+      this.computeDomNodeWidths();
+      this.applySizesOnce();
     } else {
       requestAnimationFrame(this.initSizes);
     }
@@ -348,7 +416,7 @@ class ButtonActions extends CoreSwipe {
   initialize = () => {
     if (this.hasEvents() && this.constraintsAreValid()) {
       this.initTouchEvents();
-      requestAnimationFrame(() => this.initSizes());
+      this.initSizes();
       if (this.isLinkedToOthers) this.registerSwipe(this.swipeId, this.resetOverlay);
     }
   }
@@ -361,10 +429,12 @@ class ButtonActions extends CoreSwipe {
     // console.log('action clicked : ', action);
     if (this.shouldCloseAutomatically) this.resetOverlay();
   }
-
+  bindLeftBtnContainer = (c) => {
+    this.leftBtnContainer = c;
+  }
   renderLeftButtons() {
     return (this.props.left && this.props.left.length) ? (
-      <div className="leftBtnContainer" key="leftBtnContainer" style={this.styles.leftContainerStyles} ref="leftBtnContainer" >
+      <div className="leftBtnContainer" key="leftBtnContainer" style={this.styles.leftContainerStyles} ref={this.bindLeftBtnContainer} >
        { this.props.left.map((action, index) =>
           <SlidingButton
             key={index}
@@ -375,13 +445,16 @@ class ButtonActions extends CoreSwipe {
     )
     : '';
   }
+  bindRightBtnContainer = (c) => {
+    this.rightBtnContainer = c;
+  }
 
   renderRightButtons() {
     return (this.props.right && this.props.right.length) ? (
       <div
         className="rightBtnContainer"
         key="rightBtnContainer"
-        ref="rightBtnContainer"
+        ref={this.bindRightBtnContainer}
         style={this.styles.rightContainerStyles}
       >
         { this.props.right.map(
@@ -424,31 +497,38 @@ class ButtonActions extends CoreSwipe {
   }
 
   update() {
-    requestAnimationFrame(() => this.initSizes());
-    this.resetButtons();
+    this.initSizes();
+    this.resetOverlay(false);
+
   }
 
-  /**
-   * trigger an automatic render update if updateKey is different
-   *
-   * @param {Object} nomVariable - desciption
-   * @return {Boolean} Boolean
-   */
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.updateKey !== this.props.updateKey) this.update();
+  componentDidUpdate() {
+    this.update();
+  }
+  forceRerender() {
+    this.setState((state) => ({ forceRender: !state.forceRender}));
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (nextState.forceRender !== this.state.forceRender) {
+      return true;
+    }
+
+    if (this.props.updateKey && nextProps.updateKey !== this.props.updateKey) {
+      return true;
+    }
+
+    if (this.props.doNotReRender === true) return false;
+    return true;
   }
 
   render() {
-    const mergedSwipeContainerStyles = {
-      ...this.styles.baseSwipeContainerStyles,
-      ...this.props.style
-    };
     return (
-      <div ref={this.bindContainerRef} className="swipeContainer" style={mergedSwipeContainerStyles}>
+      <div ref={this.bindContainerRef} className="swipeContainer" style={this.styles.baseSwipeContainerStyles}>
         {this.renderButtons()}
 
         <div style={this.styles.overlayStyles} className="swipeOverlay" ref={this.bindOverlayRef}>
-          {React.cloneElement(this.props.children)}
+          {this.props.children}
         </div>
       </div>
     );

@@ -6,12 +6,10 @@ class LazyElement extends React.Component {
   renderLate = () => {
     this.setState({ myChild: this.props.children});
   }
-  callMyChild = () => {
+  componentDidMount() {
     setTimeout(this.renderLate, 1000);
   }
   renderMyChildren() {
-    this.callMyChild();
-
     return (this.state.myChild) ? this.state.myChild : 'loading';
   }
   render() {
@@ -29,6 +27,7 @@ class Element2 extends React.Component {
   render() {
     return (
       <ButtonActions
+      doNotReRender={true}
           onPress={() => console.log('callback 2 on touch')}
           {...this.props.swipes}
         >
@@ -46,7 +45,7 @@ class Example extends React.Component {
     this.state = { toggle : false, updateKey: false, containerWidth: '800px' };
   }
   componentWillMount() {
-    console.log('will mount')
+    // console.log('will mount')
   }
   generateSwipesForFullElement() {
     const onOpen = (val) => console.log('open', val);
@@ -166,12 +165,16 @@ class Example extends React.Component {
     this.setState((state) => ({ updateKey: !state.updateKey }));
     // this.button.update();
   }
-
+  forceRerender = () => {
+    this.rerenderer.forceRerender();
+  }
   toggleAndRefresh = () => {
     this.setState((state) => ({ containerWidth: (state.containerWidth) === '500px' ? '800px' : '500px' }));
     // setTimeout(() => this.button5.update(), 400);
   }
-
+  bindForRerender = (c) => {
+    this.rerenderer = c;
+  }
   render() {
 
     const element1 = (
@@ -206,6 +209,7 @@ class Example extends React.Component {
 
 
     return (
+      <React.StrictMode>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#42404C', overflow: 'hidden' }}>
         <div style={{ color: '#FFF', fontWeight: 'bold', fontSize: '2.5em', margin: '2% 0'}}>react-button-actions demo : </div>
 
@@ -226,6 +230,7 @@ class Example extends React.Component {
 
 
         <ButtonActions
+        doNotReRender={true}
           onPress={() => console.log('callback 1 on touch')}
           {...this.generateSwipes()}
         >
@@ -238,6 +243,7 @@ class Example extends React.Component {
         <div style={{ width: '50%' }}>
         {this.state.toggle !== true &&
           <ButtonActions
+          doNotReRender={true}
             onPress={() => console.log('callback 3 on touch')}
             {...this.generateSwipes(3)}
           >
@@ -249,6 +255,7 @@ class Example extends React.Component {
 
         <div style={{ width: '50%' }}>
           <ButtonActions
+          doNotReRender={true}
             ref={this.bindFullWidthButton}
             fullwidth
             updateKey={this.state.updateKey}
@@ -264,6 +271,7 @@ class Example extends React.Component {
         <br />
         <div style={{ width: '50%' }}>
           <ButtonActions
+          doNotReRender={true}
             ref={this.bindFullWidthButton2}
             autoclose={false}
             {...this.generateSwipes(3)}
@@ -280,6 +288,8 @@ class Example extends React.Component {
         <div style={{ margin: '40px auto', width: this.state.containerWidth }} >
 
           <ButtonActions
+            ref={this.bindForRerender}
+            doNotReRender={true}
             updateKey={this.state.containerWidth}
             {...this.generateSwipesForFullElement()}
           >
@@ -292,8 +302,13 @@ class Example extends React.Component {
           Update container width & Trigger update on swipe
         </div>
 
+        <div onClick={this.forceRerender} className="testRerender" style={{ width: '200px', border: '1px dotted white', margin: '30px auto', textAlign: 'center', color: 'cadetblue', padding: '5px' }} >
+          Force Update
+        </div>
+
         </div>
       </div>
+    </React.StrictMode>
     );
   }
 }
