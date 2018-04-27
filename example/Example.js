@@ -31,7 +31,7 @@ class Element2 extends React.Component {
           onPress={() => console.log('callback 2 on touch')}
           {...this.props.swipes}
         >
-        <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#fbab56', color: '#FFF' }} >
+        <div style={{ display: 'flex', alignItems: 'center',opacity: '0.3', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#fbab56', color: '#FFF' }} >
           <div style={{ flex: '1', fontWeight: 'bold' }} > Component Element 2</div>
         </div>
       </ButtonActions>
@@ -178,31 +178,31 @@ class Example extends React.Component {
   render() {
 
     const element1 = (
-      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#599FFF', color: '#FFF' }} >
+      <div style={{ display: 'flex', alignItems: 'center',opacity: '0.3', flex: '1', textAlign: 'center', width: '300px', height: '75px', backgroundColor: '#599FFF', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 1</div>
       </div>
     );
 
     const element3 = (
-      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#ab75ff', color: '#FFF' }} >
+      <div style={{ display: 'flex', alignItems: 'center',opacity: '0.3', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#ab75ff', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 3</div>
       </div>
     );
 
     const elementFullWidth = (
-      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#76d4a5', color: '#FFF' }} >
+      <div style={{ display: 'flex', alignItems: 'center',opacity: '0.3', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#76d4a5', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 4 ( Full Width Swipe with ref ) </div>
       </div>
     );
 
     const elementChangeWidth = (
-      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: 'rgb(185, 0, 154)', color: '#FFF' }} >
+      <div style={{ display: 'flex', alignItems: 'center',opacity: '0.3', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: 'rgb(185, 0, 154)', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 4 ( Full Width Swipe with ref ) </div>
       </div>
     );
 
     const element4 = (
-      <div style={{ display: 'flex', alignItems: 'center', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#d47676', color: '#FFF' }} >
+      <div style={{ display: 'flex', alignItems: 'center',opacity: '0.3', flex: '1', textAlign: 'center', width: '100%', height: '75px', backgroundColor: '#d47676', color: '#FFF' }} >
         <div style={{ flex: '1', fontWeight: 'bold' }} >Decorated Element 4</div>
       </div>
     );

@@ -72,21 +72,21 @@ class ButtonActions extends CoreSwipe {
     this.deinitialize();
   }
 
-  onVerticalPanStart = (evt) => {
-    if (this.deactivateVertical === false && this.deactivateHorizontal === false) {
-      this.deactivateHorizontal = true;
-    }
-  }
+  // onVerticalPanStart = (evt) => {
+  //   if (this.deactivateVertical === false && this.deactivateHorizontal === false) {
+  //     this.deactivateHorizontal = true;
+  //   }
+  // }
 
-  onVerticalPanEnd = (evt) => {
-    if (this.deactivateHorizontal === true) {
-      this.deactivateHorizontal = false;
-    }
-  }
+  // onVerticalPanEnd = (evt) => {
+  //   if (this.deactivateHorizontal === true) {
+  //     this.deactivateHorizontal = false;
+  //   }
+  // }
 
   onHorizontalPanStart = (evt) => {
     if (this.deactivateHorizontal === false) {
-      this.deactivateVertical = true;
+      // this.deactivateVertical = true;
       this.panStartDelta = evt.deltaX;
     }
   }
@@ -108,7 +108,7 @@ class ButtonActions extends CoreSwipe {
   }
 
   resetOverlay = (withDispatch = true) => {
-    if (withDispatch && this.leftIsVisible || this.rightIsVisible) {
+    if (withDispatch && (this.leftIsVisible || this.rightIsVisible)) {
       this.onClose();
     }
     this.currentLeftDistance = false;
@@ -141,7 +141,7 @@ class ButtonActions extends CoreSwipe {
 
   onHorizontalPanEnd = (evt) => {
     if (this.deactivateHorizontal === false) {
-      this.deactivateVertical = false;
+      // this.deactivateVertical = false;
       this.shouldShowRight = (this.leftIsVisible === false && this.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.threshold);
       this.shouldShowLeft = (this.rightIsVisible === false && this.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.threshold);
 
@@ -169,7 +169,10 @@ class ButtonActions extends CoreSwipe {
   }
 
   transformLeftButton(value) {
-    if (this.leftBtnContainer) {
+    const current = this.leftBtnContainer.style.transform;
+    const newValue = `scale3d(${value}, 1, 1)`;
+    if (this.leftBtnContainer && (current !== newValue)) {
+      console.trace();
       this.leftBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
     }
   }
@@ -201,9 +204,14 @@ class ButtonActions extends CoreSwipe {
         this.translateOverlay(correctedValue);
         this.transformButtons(correctedValue);
       } else {
-        this.currentLeftDistance = value;
-        this.translateOverlay(value);
-        this.transformButtons(value);
+        console.log('dist', dist);
+        console.log('value', value);
+        if (dist !== 0 && value !== 0) {
+          this.currentLeftDistance = value;
+          this.translateOverlay(value);
+          this.transformButtons(value);
+        }
+
       }
     }
   }
@@ -272,12 +280,12 @@ class ButtonActions extends CoreSwipe {
     this.hammer.off(eventsString);
     this.hammer.destroy();
     this.bindedEvents = {};
-    if (this.bindedEventsVert) {
-      const eventsStringVert = Object.keys(this.bindedEventsVert).join(' ');
-      this.hammerVertical.off(eventsStringVert);
-      this.hammerVertical.destroy();
-      this.bindedEventsVert = false;
-    }
+    // if (this.bindedEventsVert) {
+      // const eventsStringVert = Object.keys(this.bindedEventsVert).join(' ');
+      // this.hammerVertical.off(eventsStringVert);
+      // this.hammerVertical.destroy();
+      // this.bindedEventsVert = false;
+    // }
 
   }
 
@@ -290,30 +298,30 @@ class ButtonActions extends CoreSwipe {
     this.resetTapEvents();
     this.resetSwipeEvents();
   }
-  initBindedEvents2 = () => {
-    if (this.bindedEventsVert === false) this.bindedEventsVert = {};
-  }
+  // initBindedEvents2 = () => {
+  //   if (this.bindedEventsVert === false) this.bindedEventsVert = {};
+  // }
   registerEvent(eventName, second = false) {
-    if (second) {
-      this.initBindedEvents2();
-      this.bindedEventsVert[eventName] = true;
-    }
+    // if (second) {
+    //   this.initBindedEvents2();
+    //   this.bindedEventsVert[eventName] = true;
+    // }
     this.bindedEvents[eventName] = true;
   }
 
-  initVerticalBlocker = () => {
-    this.registerEvent('pandown', true);
-    this.registerEvent('panup', true);
-    this.hammerVertical.on('panstart', this.onVerticalPanStart);
-    this.hammerVertical.on('panend', this.onVerticalPanEnd);
-  }
+  // initVerticalBlocker = () => {
+  //   this.registerEvent('pandown', true);
+  //   this.registerEvent('panup', true);
+  //   this.hammerVertical.on('panstart', this.onVerticalPanStart);
+  //   this.hammerVertical.on('panend', this.onVerticalPanEnd);
+  // }
 
   initEventsFromProps() {
     const events = this.getEvents();
     // console.log('events', events);
     if (events.left || events.right) {
       // console.log('binding pan');
-      this.initVerticalBlocker();
+      // this.initVerticalBlocker();
 
       this.registerEvent('panstart');
       this.hammer.on('panstart', this.onHorizontalPanStart);
@@ -336,9 +344,9 @@ class ButtonActions extends CoreSwipe {
 
     // console.log('binding hammer', this.overlay);
     this.hammer = new Hammer(this.overlay);
-    this.hammerVertical = new Hammer(this.overlay);
-    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 20 });
-    this.hammerVertical.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL, threshold: 2 });
+    // this.hammerVertical = new Hammer(this.overlay);
+    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 100, touchAction: 'pan-x' });
+    // this.hammerVertical.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL, threshold: 2 });
     this.initEventsFromProps();
   }
 
