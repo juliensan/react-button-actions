@@ -87,6 +87,26 @@ class Example extends React.Component {
         text: (<i style={{fontSize: '3em'}} className="fa fa-ban" aria-hidden="true"></i>),
         onPress:() => console.log('Ban'),
         style: { backgroundColor: '#ff4174', color: 'white' }
+      },
+      {
+        text: (<i style={{fontSize: '3em'}} className="fa fa-spinner fa-spin fa-3x fa-fw"></i>),
+        onPress: () => console.log('loading'),
+        style: { backgroundColor: '#599FFF', color: 'white' }
+      },
+      {
+        text: (<i style={{fontSize: '3em'}} className="fa fa-ban" aria-hidden="true"></i>),
+        onPress:() => console.log('Ban'),
+        style: { backgroundColor: '#ff4174', color: 'white' }
+      },
+      {
+        text: (<i style={{fontSize: '3em'}} className="fa fa-spinner fa-spin fa-3x fa-fw"></i>),
+        onPress: () => console.log('loading'),
+        style: { backgroundColor: '#599FFF', color: 'white' }
+      },
+      {
+        text: (<i style={{fontSize: '3em'}} className="fa fa-ban" aria-hidden="true"></i>),
+        onPress:() => console.log('Ban'),
+        style: { backgroundColor: '#ff4174', color: 'white' }
       }
     ]
     };
@@ -271,7 +291,7 @@ class Example extends React.Component {
         <br />
         <div style={{ width: '50%' }}>
           <ButtonActions
-          doNotReRender={true}
+            doNotReRender={true}
             ref={this.bindFullWidthButton2}
             autoclose={false}
             {...this.generateSwipes(3)}
