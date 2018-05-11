@@ -5,8 +5,15 @@ import CoreSwipe from './CoreSwipe';
 import SlidingButton from './SlidingButton';
 import { SwipeStyles, ButtonStyles } from './Styles';
 
-const computeShowAnimationCssValue = (distance, maxWidth) => Math.min(distance / maxWidth, 1);
-const computeHideAnimationCssValue = (distance, maxWidth) => Math.max(1 - (distance / maxWidth), 0);
+const computeShowAnimationCssValue = (distance, maxWidth) => {
+  const raw = Math.min(distance / maxWidth, 1);
+  return Math.round(raw * 1000) / 1000;
+
+};
+const computeHideAnimationCssValue = (distance, maxWidth) => {
+  const raw = Math.max(1 - (distance / maxWidth), 0);
+  return Math.round(raw * 1000) / 1000;
+}
 
 class ButtonActions extends CoreSwipe {
 
@@ -170,24 +177,17 @@ class ButtonActions extends CoreSwipe {
     const dist = distance * -1;
     if (this.leftBtnContainerScale > 0) {
       const leftScale = computeHideAnimationCssValue(dist, this.btnsLeftWidthPixels);
-      // console.group('LEFT : left is visible')
-      // console.log('this.leftBtnContainerScale', this.leftBtnContainerScale);
-      // console.log('leftScale', leftScale);
-      // console.log('dist', dist);
-      // console.log('this.btnsLeftWidthPixels', this.btnsLeftWidthPixels);
-      // console.groupEnd();
       return this.transformLeftButton(leftScale);
+    } else {
+      if (!this.hasRightBtns()) return;
+
+      const rightFn = computeShowAnimationCssValue;
+      const rightScale = rightFn(dist, this.btnsRightWidthPixels);
+      return this.transformRightButton(rightScale);
     }
-
-    if (!this.hasRightBtns()) return;
-
-    const rightFn = computeShowAnimationCssValue;
-    const rightScale = rightFn(dist, this.btnsRightWidthPixels);
-    return this.transformRightButton(rightScale);
   }
 
   transformButtonsFromRightPan(distance) {
-    // const isPaningToRight = (distance > 0);
     const dist = distance;
     if (this.rightBtnContainerScale > 0) {
       const rightScale = computeHideAnimationCssValue(dist, this.btnsRightWidthPixels);
@@ -204,7 +204,6 @@ class ButtonActions extends CoreSwipe {
 
   transformLeftButton(value) {
     if (this.leftBtnContainer && this.rightBtnContainerScale === 0 && this.rightIsVisible === false) {
-      // console.trace();
       this.leftBtnContainerScale = value;
       this.leftBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
     }
@@ -226,8 +225,7 @@ class ButtonActions extends CoreSwipe {
         const correctedValue = (this.leftIsVisible)
           ? Math.max(value, 0)
           : value;
-        // console.log('correctedValue', correctedValue);
-        // console.log('value', value);
+
         this.overlayTransform = correctedValue;
         this.overlay.style.transform = `translate3d(${correctedValue}px,0px,0px)`;
       }
@@ -271,28 +269,33 @@ class ButtonActions extends CoreSwipe {
   onRightPan = (evt) => {
     // const dist = this.getAbsDistanceWithVelocity(evt.deltaX, evt.velocityX);
     const dist = this.getAbsDistanceWithVelocity(evt);
-    // Ici la distance max n'est pas au max la taille de gauche,
-    // si les droit sont visible c'est droit + gauche
-    const maxDistance = (this.rightBtnContainerScale > 0)
-      ? Math.round(Math.min(dist, this.btnsRightWidthPixels))
-      : Math.round(Math.min(dist, this.btnsLeftWidthPixels));
+    if (dist !== 0) {
+      const maxDistance = (this.rightBtnContainerScale > 0)
+        ? Math.round(Math.min(dist, this.btnsRightWidthPixels))
+        : Math.round(Math.min(dist, this.btnsLeftWidthPixels));
 
-    this.currentRightDistance = maxDistance;
-    this.transformButtonsFromRightPan(maxDistance);
-    this.translateOverlayFromRightPan(maxDistance);
+      if (maxDistance !== this.currentRightDistance) {
+        this.currentRightDistance = maxDistance;
+        this.transformButtonsFromRightPan(maxDistance);
+        this.translateOverlayFromRightPan(maxDistance);
+      }
+    }
   }
 
   onLeftPan = (evt) => {
-
+    // if (!this.rightBtnContainer && this.leftBtnContainerScale === 0) return;
     const dist = this.getAbsDistanceWithVelocity(evt);
-    const maxDistance = (this.leftBtnContainerScale > 0)
-      ? Math.round(Math.min(dist, this.btnsLeftWidthPixels) * - 1)
-      : Math.round(Math.min(dist, this.btnsRightWidthPixels) * - 1);
+    if (dist !== 0) {
+      const maxDistance = (this.leftBtnContainerScale > 0)
+        ? Math.round(Math.min(dist, this.btnsLeftWidthPixels) * - 1)
+        : Math.round(Math.min(dist, this.btnsRightWidthPixels) * - 1);
 
-    this.currentLeftDistance = maxDistance;
-    this.transformButtonsFromLeftPan(maxDistance);
-    this.translateOverlayFromLeftPan(maxDistance);
-
+      if (maxDistance !== this.currentLeftDistance) {
+        this.currentLeftDistance = maxDistance;
+        this.transformButtonsFromLeftPan(maxDistance);
+        this.translateOverlayFromLeftPan(maxDistance);
+      }
+    }
   }
 
   onOpen() {
@@ -313,12 +316,13 @@ class ButtonActions extends CoreSwipe {
   // }
 
   getAbsDistanceWithVelocity(event) {
-    return (event.distance - 75) * (1 + event.velocityX);
-    // return Math.abs(position - this.panStartDelta * (1 + velocity));
+    if (event.center.x === 0 && event.center.y === 0) return 0; // hammerjs bug : https://github.com/hammerjs/hammer.js/issues/1132
+    const distance = (event.distance - 75);
+    const velocity = Math.abs(1 + ((event.velocityX) / 2));
+    return distance * velocity;
   }
 
   handleRightPanWithLeftVisible(value) {
-    console.log('handleRightPanWithLeftVisible')
     const correctedValue = Math.max(value, this.currentLeftDistance);
     this.currentRightDistance = correctedValue;
     this.translateOverlay(correctedValue);
