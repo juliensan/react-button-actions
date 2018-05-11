@@ -5,8 +5,15 @@ import CoreSwipe from './CoreSwipe';
 import SlidingButton from './SlidingButton';
 import { SwipeStyles, ButtonStyles } from './Styles';
 
-const computeShowAnimationCssValue = (distance, maxWidth) => Math.min(distance / maxWidth, 1);
-const computeHideAnimationCssValue = (distance, maxWidth) => Math.max(1 - (distance / maxWidth), 0);
+const computeShowAnimationCssValue = (distance, maxWidth) => {
+  const raw = Math.min(distance / maxWidth, 1);
+  return Math.round(raw * 1000) / 1000;
+
+};
+const computeHideAnimationCssValue = (distance, maxWidth) => {
+  const raw = Math.max(1 - (distance / maxWidth), 0);
+  return Math.round(raw * 1000) / 1000;
+}
 
 class ButtonActions extends CoreSwipe {
 
@@ -37,9 +44,11 @@ class ButtonActions extends CoreSwipe {
     };
     this.deactivateVertical = false;
     this.sizeInitialized = false;
-
-    this.btnsLeftWidth = 0;
-    this.btnsRightWidth = 0;
+    this.leftBtnContainerScale = 0;
+    this.rightBtnContainerScale = 0;
+    this.overlayTransform = 0;
+    this.btnsLeftWidthPixels = 0;
+    this.btnsRightWidthPixels = 0;
     this.bindedEvents = {};
     this.bindedEventsVert = false;
 
@@ -72,24 +81,24 @@ class ButtonActions extends CoreSwipe {
     this.deinitialize();
   }
 
-  onVerticalPanStart = (evt) => {
-    if (this.deactivateVertical === false && this.deactivateHorizontal === false) {
-      this.deactivateHorizontal = true;
-    }
-  }
+  // onVerticalPanStart = (evt) => {
+  //   if (this.deactivateVertical === false && this.deactivateHorizontal === false) {
+  //     this.deactivateHorizontal = true;
+  //   }
+  // }
 
-  onVerticalPanEnd = (evt) => {
-    if (this.deactivateHorizontal === true) {
-      this.deactivateHorizontal = false;
-    }
-  }
+  // onVerticalPanEnd = (evt) => {
+  //   if (this.deactivateHorizontal === true) {
+  //     this.deactivateHorizontal = false;
+  //   }
+  // }
 
-  onHorizontalPanStart = (evt) => {
-    if (this.deactivateHorizontal === false) {
-      this.deactivateVertical = true;
-      this.panStartDelta = evt.deltaX;
-    }
-  }
+  // onHorizontalPanStart = (evt) => {
+  //   if (this.deactivateHorizontal === false) {
+  //     // this.deactivateVertical = true;
+  //     this.panStartDelta = evt.deltaX;
+  //   }
+  // }
 
   close = () => {
     this.resetOverlay();
@@ -104,11 +113,12 @@ class ButtonActions extends CoreSwipe {
   }
 
   isOverlayTransformed = () => {
-    return this.overlay.style.transform !== 'translate3d(0px, 0px, 0px)';
+    return this.overlayTransform !== 0;
+    // return this.overlay.style.transform !== 'translate3d(0px, 0px, 0px)';
   }
 
   resetOverlay = (withDispatch = true) => {
-    if (withDispatch && this.leftIsVisible || this.rightIsVisible) {
+    if (withDispatch && (this.leftIsVisible || this.rightIsVisible)) {
       this.onClose();
     }
     this.currentLeftDistance = false;
@@ -121,7 +131,7 @@ class ButtonActions extends CoreSwipe {
 
   showRightMenu = () => {
     this.onClose();
-    this.translateOverlay(-this.btnsRightWidth);
+    this.translateOverlay(-this.btnsRightWidthPixels);
     this.transformLeftButton(0);
     this.transformRightButton(1);
     this.leftIsVisible = false;
@@ -131,7 +141,7 @@ class ButtonActions extends CoreSwipe {
 
   showLeftMenu = () => {
     this.onClose();
-    this.translateOverlay(this.btnsLeftWidth);
+    this.translateOverlay(this.btnsLeftWidthPixels);
     this.transformLeftButton(1);
     this.transformRightButton(0);
     this.leftIsVisible = true;
@@ -140,8 +150,11 @@ class ButtonActions extends CoreSwipe {
   }
 
   onHorizontalPanEnd = (evt) => {
+
     if (this.deactivateHorizontal === false) {
-      this.deactivateVertical = false;
+      // console.log('this.rightBtnContainerScale', this.rightBtnContainerScale);
+      // console.log('this.leftBtnContainerScale', this.leftBtnContainerScale);
+      // this.deactivateVertical = false;
       this.shouldShowRight = (this.leftIsVisible === false && this.rightBtnContainer && evt.deltaX < 0 && evt.distance > this.threshold);
       this.shouldShowLeft = (this.rightIsVisible === false && this.leftBtnContainer && evt.deltaX > 0 && evt.distance > this.threshold);
 
@@ -153,57 +166,133 @@ class ButtonActions extends CoreSwipe {
     }
   }
 
-  transformButtons(distance) {
+  hasRightBtns() {
+    return (this.props.right && this.props.right.length);
+  }
 
-    const lefty = (distance > 0);
-    const dist = (lefty) ? distance : distance * -1;
+  hasLeftBtns() {
+    return (this.props.left && this.props.left.length);
+  }
 
-    const leftFn = (lefty) ? computeShowAnimationCssValue : computeHideAnimationCssValue;
-    const rightFn = (lefty) ? computeHideAnimationCssValue : computeShowAnimationCssValue;
+  transformButtonsFromLeftPan(distance) {
+    const dist = distance * -1;
+    if (this.leftBtnContainerScale > 0) {
+      const leftScale = computeHideAnimationCssValue(dist, this.btnsLeftWidthPixels);
+      return this.transformLeftButton(leftScale);
+    } else {
+      if (!this.hasRightBtns()) return;
 
-    const leftScale = leftFn(dist, this.btnsLeftWidth);
-    const rightScale = rightFn(dist, this.btnsRightWidth);
+      const rightFn = computeShowAnimationCssValue;
+      const rightScale = rightFn(dist, this.btnsRightWidthPixels);
+      return this.transformRightButton(rightScale);
+    }
+  }
 
-    this.transformLeftButton(leftScale);
-    this.transformRightButton(rightScale);
+  transformButtonsFromRightPan(distance) {
+    const dist = distance;
+    if (this.rightBtnContainerScale > 0) {
+      const rightScale = computeHideAnimationCssValue(dist, this.btnsRightWidthPixels);
+      // const rightScale = Math.max(1 - (dist / this.btnsRightWidthPixels), 0);
+      return this.transformRightButton(rightScale);
+    }
+
+    if (!this.hasLeftBtns()) return;
+    const leftFn = computeShowAnimationCssValue;
+    const leftScale = leftFn(dist, this.btnsLeftWidthPixels);
+    return this.transformLeftButton(leftScale);
   }
 
   transformLeftButton(value) {
-    if (this.leftBtnContainer) {
+    if (this.leftBtnContainer && this.rightBtnContainerScale === 0 && this.rightIsVisible === false) {
+      this.leftBtnContainerScale = value;
       this.leftBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
     }
   }
 
   transformRightButton(value) {
-    if (this.rightBtnContainer) {
+    if (this.rightBtnContainer && this.leftBtnContainerScale === 0 && this.leftIsVisible === false) {
+      this.rightBtnContainerScale = value;
       this.rightBtnContainer.style.transform = `scale3d(${value}, 1, 1)`;
+    }
+  }
+  translateOverlayFromLeftPan(value) {
+    if (this.overlay) {
+      if (this.leftBtnContainerScale > 0) {
+        const ongoingTranslate = Math.round(this.overlayTransform * this.leftBtnContainerScale);
+        this.overlayTransform = ongoingTranslate;
+        this.overlay.style.transform = `translate3d(${ongoingTranslate}px,0px,0px)`;
+      } else {
+        const correctedValue = (this.leftIsVisible)
+          ? Math.max(value, 0)
+          : value;
+
+        this.overlayTransform = correctedValue;
+        this.overlay.style.transform = `translate3d(${correctedValue}px,0px,0px)`;
+      }
+    }
+  }
+
+  translateOverlayFromRightPan(value) {
+    if (this.overlay) {
+      if (this.rightBtnContainerScale > 0) {
+        const ongoingTranslate = Math.round(this.overlayTransform * this.rightBtnContainerScale);
+        this.overlayTransform = ongoingTranslate;
+        this.overlay.style.transform = `translate3d(${ongoingTranslate}px,0px,0px)`;
+      } else {
+        const correctedValue = (this.rightIsVisible)
+          ? Math.min(value, 0)
+          : value;
+        this.overlayTransform = correctedValue;
+        this.overlay.style.transform = `translate3d(${correctedValue}px,0px,0px)`;
+      }
     }
   }
 
   translateOverlay(value) {
     if (this.overlay) {
+      this.overlayTransform = value;
       this.overlay.style.transform = `translate3d(${value}px,0px,0px)`;
     }
   }
 
+  handleLeftPanWithRightVisible(value) {
+    const correctedValue = (this.leftIsVisible)
+      ? Math.max(value, 0)
+      : Math.min(value, this.currentRightDistance);
+
+    this.currentLeftDistance = correctedValue;
+    this.translateOverlay(correctedValue);
+    this.transformButtons(correctedValue);
+  }
+
+  onRightPan = (evt) => {
+    // const dist = this.getAbsDistanceWithVelocity(evt.deltaX, evt.velocityX);
+    const dist = this.getAbsDistanceWithVelocity(evt);
+    if (dist !== 0) {
+      const maxDistance = (this.rightBtnContainerScale > 0)
+        ? Math.round(Math.min(dist, this.btnsRightWidthPixels))
+        : Math.round(Math.min(dist, this.btnsLeftWidthPixels));
+
+      if (maxDistance !== this.currentRightDistance) {
+        this.currentRightDistance = maxDistance;
+        this.transformButtonsFromRightPan(maxDistance);
+        this.translateOverlayFromRightPan(maxDistance);
+      }
+    }
+  }
+
   onLeftPan = (evt) => {
-    if (this.deactivateHorizontal === false) {
-      // left: dist < 0
-      const dist = this.getMovement(evt.deltaX, evt.velocityX);
-      const value = Math.max(dist, this.btnsRightWidth * - 1);
+    // if (!this.rightBtnContainer && this.leftBtnContainerScale === 0) return;
+    const dist = this.getAbsDistanceWithVelocity(evt);
+    if (dist !== 0) {
+      const maxDistance = (this.leftBtnContainerScale > 0)
+        ? Math.round(Math.min(dist, this.btnsLeftWidthPixels) * - 1)
+        : Math.round(Math.min(dist, this.btnsRightWidthPixels) * - 1);
 
-      if (this.currentRightDistance !== false) {
-        const correctedValue = (this.leftIsVisible)
-          ? Math.max(value, 0)
-          : Math.min(value, this.currentRightDistance);
-
-        this.currentLeftDistance = correctedValue;
-        this.translateOverlay(correctedValue);
-        this.transformButtons(correctedValue);
-      } else {
-        this.currentLeftDistance = value;
-        this.translateOverlay(value);
-        this.transformButtons(value);
+      if (maxDistance !== this.currentLeftDistance) {
+        this.currentLeftDistance = maxDistance;
+        this.transformButtonsFromLeftPan(maxDistance);
+        this.translateOverlayFromLeftPan(maxDistance);
       }
     }
   }
@@ -221,26 +310,22 @@ class ButtonActions extends CoreSwipe {
     }
   }
 
-  getMovement(position, velocity) {
-    return Math.round(position - this.panStartDelta * (1 + velocity));
+  // getAbsDistanceWithVelocity(position, velocity) {
+  //   return Math.abs(position - this.panStartDelta * (1 + velocity));
+  // }
+
+  getAbsDistanceWithVelocity(event) {
+    if (event.center.x === 0 && event.center.y === 0) return 0; // hammerjs bug : https://github.com/hammerjs/hammer.js/issues/1132
+    const distance = (event.distance - 75);
+    const velocity = Math.abs(1 + ((event.velocityX) / 2));
+    return distance * velocity;
   }
 
-  onRightPan = (evt) => {
-    if (this.deactivateHorizontal === false) {
-      const dist = this.getMovement(evt.deltaX, evt.velocityX);
-      const value = Math.min(dist, this.btnsLeftWidth);
-
-      if (this.currentLeftDistance !== false) {
-        const correctedValue = Math.max(value, this.currentLeftDistance);
-        this.currentRightDistance = correctedValue;
-        this.translateOverlay(correctedValue);
-        this.transformButtons(correctedValue);
-      } else {
-        this.currentRightDistance = value;
-        this.translateOverlay(value);
-        this.transformButtons(value);
-      }
-    }
+  handleRightPanWithLeftVisible(value) {
+    const correctedValue = Math.max(value, this.currentLeftDistance);
+    this.currentRightDistance = correctedValue;
+    this.translateOverlay(correctedValue);
+    this.transformButtons(correctedValue);
   }
 
   getEvents() {
@@ -272,12 +357,12 @@ class ButtonActions extends CoreSwipe {
     this.hammer.off(eventsString);
     this.hammer.destroy();
     this.bindedEvents = {};
-    if (this.bindedEventsVert) {
-      const eventsStringVert = Object.keys(this.bindedEventsVert).join(' ');
-      this.hammerVertical.off(eventsStringVert);
-      this.hammerVertical.destroy();
-      this.bindedEventsVert = false;
-    }
+    // if (this.bindedEventsVert) {
+      // const eventsStringVert = Object.keys(this.bindedEventsVert).join(' ');
+      // this.hammerVertical.off(eventsStringVert);
+      // this.hammerVertical.destroy();
+      // this.bindedEventsVert = false;
+    // }
 
   }
 
@@ -290,33 +375,33 @@ class ButtonActions extends CoreSwipe {
     this.resetTapEvents();
     this.resetSwipeEvents();
   }
-  initBindedEvents2 = () => {
-    if (this.bindedEventsVert === false) this.bindedEventsVert = {};
-  }
+  // initBindedEvents2 = () => {
+  //   if (this.bindedEventsVert === false) this.bindedEventsVert = {};
+  // }
   registerEvent(eventName, second = false) {
-    if (second) {
-      this.initBindedEvents2();
-      this.bindedEventsVert[eventName] = true;
-    }
+    // if (second) {
+    //   this.initBindedEvents2();
+    //   this.bindedEventsVert[eventName] = true;
+    // }
     this.bindedEvents[eventName] = true;
   }
 
-  initVerticalBlocker = () => {
-    this.registerEvent('pandown', true);
-    this.registerEvent('panup', true);
-    this.hammerVertical.on('panstart', this.onVerticalPanStart);
-    this.hammerVertical.on('panend', this.onVerticalPanEnd);
-  }
+  // initVerticalBlocker = () => {
+  //   this.registerEvent('pandown', true);
+  //   this.registerEvent('panup', true);
+  //   this.hammerVertical.on('panstart', this.onVerticalPanStart);
+  //   this.hammerVertical.on('panend', this.onVerticalPanEnd);
+  // }
 
   initEventsFromProps() {
     const events = this.getEvents();
     // console.log('events', events);
     if (events.left || events.right) {
       // console.log('binding pan');
-      this.initVerticalBlocker();
+      // this.initVerticalBlocker();
 
-      this.registerEvent('panstart');
-      this.hammer.on('panstart', this.onHorizontalPanStart);
+      // this.registerEvent('panstart');
+      // this.hammer.on('panstart', this.onHorizontalPanStart);
 
       this.registerEvent('panend');
       this.hammer.on('panend', this.onHorizontalPanEnd);
@@ -336,9 +421,9 @@ class ButtonActions extends CoreSwipe {
 
     // console.log('binding hammer', this.overlay);
     this.hammer = new Hammer(this.overlay);
-    this.hammerVertical = new Hammer(this.overlay);
-    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 20 });
-    this.hammerVertical.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL, threshold: 2 });
+    // this.hammerVertical = new Hammer(this.overlay);
+    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 75, touchAction: 'pan-x' });
+    // this.hammerVertical.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL, threshold: 2 });
     this.initEventsFromProps();
   }
 
@@ -350,16 +435,29 @@ class ButtonActions extends CoreSwipe {
 
     const { leftLength, rightLength } = this.getNbButtonsBySide();
 
-    this.btnsLeftWidth = (this.isFullWidth && leftLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * leftLength;
-    this.btnsRightWidth = (this.isFullWidth && rightLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * rightLength;
-    this.threshold = Math.round(this.overlayWidth / 4.5);
+
+
+    this.btnsLeftWidthPixels = (this.isFullWidth && leftLength)
+      ? this.overlayWidth
+      : (leftLength > 3) ? this.overlayWidth * 0.7 : (this.overlayWidth / 4.5) * leftLength;
+
+    this.btnsRightWidthPixels = (this.isFullWidth && rightLength)
+      ? this.overlayWidth
+      : (rightLength > 3) ? this.overlayWidth * 0.7 : (this.overlayWidth / 4.5) * rightLength;
+
+    this.threshold = Math.round(this.overlayWidth / 3.3);
   }
 
   computeCssSizes = () => {
     const { leftLength, rightLength } = this.getNbButtonsBySide();
+    const maxWidth = 70;
 
-    const btnsLeftWidthCss = (this.isFullWidth && leftLength) ? 100 : 23 * leftLength;
-    const btnsRightWidthCss = (this.isFullWidth && rightLength) ? 100 : 23 * rightLength;
+    const btnsLeftWidthCss = (this.isFullWidth && leftLength)
+      ? 100
+      : (leftLength > 3) ? maxWidth : 22.2 * leftLength;
+    const btnsRightWidthCss = (this.isFullWidth && rightLength)
+      ? 100
+      : (rightLength > 3) ? maxWidth : 22.2 * rightLength;
 
     this.leftContainerStyles = { ...SwipeStyles.leftContainerStyles, ...{ width: `${btnsLeftWidthCss}%` }};
     this.rightContainerStyles = { ...SwipeStyles.rightContainerStyles, ...{ width: `${btnsRightWidthCss}%`}};
