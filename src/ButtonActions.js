@@ -150,6 +150,7 @@ class ButtonActions extends CoreSwipe {
   }
 
   onHorizontalPanEnd = (evt) => {
+
     if (this.deactivateHorizontal === false) {
       // console.log('this.rightBtnContainerScale', this.rightBtnContainerScale);
       // console.log('this.leftBtnContainerScale', this.leftBtnContainerScale);
@@ -196,7 +197,6 @@ class ButtonActions extends CoreSwipe {
     }
 
     if (!this.hasLeftBtns()) return;
-
     const leftFn = computeShowAnimationCssValue;
     const leftScale = leftFn(dist, this.btnsLeftWidthPixels);
     return this.transformLeftButton(leftScale);
@@ -256,7 +256,6 @@ class ButtonActions extends CoreSwipe {
   }
 
   handleLeftPanWithRightVisible(value) {
-    console.log('handleLeftPanWithRightVisible')
     const correctedValue = (this.leftIsVisible)
       ? Math.max(value, 0)
       : Math.min(value, this.currentRightDistance);
