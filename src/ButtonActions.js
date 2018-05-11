@@ -40,8 +40,8 @@ class ButtonActions extends CoreSwipe {
     this.leftBtnContainerScale = 0;
     this.rightBtnContainerScale = 0;
     this.overlayTransform = 0;
-    this.btnsLeftWidth = 0;
-    this.btnsRightWidth = 0;
+    this.btnsLeftWidthPixels = 0;
+    this.btnsRightWidthPixels = 0;
     this.bindedEvents = {};
     this.bindedEventsVert = false;
 
@@ -124,7 +124,7 @@ class ButtonActions extends CoreSwipe {
 
   showRightMenu = () => {
     this.onClose();
-    this.translateOverlay(-this.btnsRightWidth);
+    this.translateOverlay(-this.btnsRightWidthPixels);
     this.transformLeftButton(0);
     this.transformRightButton(1);
     this.leftIsVisible = false;
@@ -134,7 +134,7 @@ class ButtonActions extends CoreSwipe {
 
   showLeftMenu = () => {
     this.onClose();
-    this.translateOverlay(this.btnsLeftWidth);
+    this.translateOverlay(this.btnsLeftWidthPixels);
     this.transformLeftButton(1);
     this.transformRightButton(0);
     this.leftIsVisible = true;
@@ -169,12 +169,12 @@ class ButtonActions extends CoreSwipe {
   transformButtonsFromLeftPan(distance) {
     const dist = distance * -1;
     if (this.leftBtnContainerScale > 0) {
-      const leftScale = computeHideAnimationCssValue(dist, this.btnsLeftWidth);
+      const leftScale = computeHideAnimationCssValue(dist, this.btnsLeftWidthPixels);
       // console.group('LEFT : left is visible')
       // console.log('this.leftBtnContainerScale', this.leftBtnContainerScale);
       // console.log('leftScale', leftScale);
       // console.log('dist', dist);
-      // console.log('this.btnsLeftWidth', this.btnsLeftWidth);
+      // console.log('this.btnsLeftWidthPixels', this.btnsLeftWidthPixels);
       // console.groupEnd();
       return this.transformLeftButton(leftScale);
     }
@@ -182,7 +182,7 @@ class ButtonActions extends CoreSwipe {
     if (!this.hasRightBtns()) return;
 
     const rightFn = computeShowAnimationCssValue;
-    const rightScale = rightFn(dist, this.btnsRightWidth);
+    const rightScale = rightFn(dist, this.btnsRightWidthPixels);
     return this.transformRightButton(rightScale);
   }
 
@@ -190,16 +190,15 @@ class ButtonActions extends CoreSwipe {
     // const isPaningToRight = (distance > 0);
     const dist = distance;
     if (this.rightBtnContainerScale > 0) {
-      const rightScale = computeHideAnimationCssValue(dist, this.btnsRightWidth);
-      // const rightScale = Math.max(1 - (dist / this.btnsRightWidth), 0);
+      const rightScale = computeHideAnimationCssValue(dist, this.btnsRightWidthPixels);
+      // const rightScale = Math.max(1 - (dist / this.btnsRightWidthPixels), 0);
       return this.transformRightButton(rightScale);
     }
 
     if (!this.hasLeftBtns()) return;
 
-    console.log('RIGHT : right is NOT visible')
     const leftFn = computeShowAnimationCssValue;
-    const leftScale = leftFn(dist, this.btnsLeftWidth);
+    const leftScale = leftFn(dist, this.btnsLeftWidthPixels);
     return this.transformLeftButton(leftScale);
   }
 
@@ -275,8 +274,8 @@ class ButtonActions extends CoreSwipe {
     // Ici la distance max n'est pas au max la taille de gauche,
     // si les droit sont visible c'est droit + gauche
     const maxDistance = (this.rightBtnContainerScale > 0)
-      ? Math.round(Math.min(dist, this.btnsRightWidth))
-      : Math.round(Math.min(dist, this.btnsLeftWidth));
+      ? Math.round(Math.min(dist, this.btnsRightWidthPixels))
+      : Math.round(Math.min(dist, this.btnsLeftWidthPixels));
 
     this.currentRightDistance = maxDistance;
     this.transformButtonsFromRightPan(maxDistance);
@@ -287,8 +286,8 @@ class ButtonActions extends CoreSwipe {
 
     const dist = this.getAbsDistanceWithVelocity(evt);
     const maxDistance = (this.leftBtnContainerScale > 0)
-      ? Math.round(Math.min(dist, this.btnsLeftWidth) * - 1)
-      : Math.round(Math.min(dist, this.btnsRightWidth) * - 1);
+      ? Math.round(Math.min(dist, this.btnsLeftWidthPixels) * - 1)
+      : Math.round(Math.min(dist, this.btnsRightWidthPixels) * - 1);
 
     this.currentLeftDistance = maxDistance;
     this.transformButtonsFromLeftPan(maxDistance);
@@ -433,16 +432,29 @@ class ButtonActions extends CoreSwipe {
 
     const { leftLength, rightLength } = this.getNbButtonsBySide();
 
-    this.btnsLeftWidth = (this.isFullWidth && leftLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * leftLength;
-    this.btnsRightWidth = (this.isFullWidth && rightLength) ? this.overlayWidth : (this.overlayWidth / 4.5) * rightLength;
+
+
+    this.btnsLeftWidthPixels = (this.isFullWidth && leftLength)
+      ? this.overlayWidth
+      : (leftLength > 3) ? this.overlayWidth * 0.7 : (this.overlayWidth / 4.5) * leftLength;
+
+    this.btnsRightWidthPixels = (this.isFullWidth && rightLength)
+      ? this.overlayWidth
+      : (rightLength > 3) ? this.overlayWidth * 0.7 : (this.overlayWidth / 4.5) * rightLength;
+
     this.threshold = Math.round(this.overlayWidth / 3.3);
   }
 
   computeCssSizes = () => {
     const { leftLength, rightLength } = this.getNbButtonsBySide();
+    const maxWidth = 70;
 
-    const btnsLeftWidthCss = (this.isFullWidth && leftLength) ? 100 : 23 * leftLength;
-    const btnsRightWidthCss = (this.isFullWidth && rightLength) ? 100 : 23 * rightLength;
+    const btnsLeftWidthCss = (this.isFullWidth && leftLength)
+      ? 100
+      : (leftLength > 3) ? maxWidth : 22.2 * leftLength;
+    const btnsRightWidthCss = (this.isFullWidth && rightLength)
+      ? 100
+      : (rightLength > 3) ? maxWidth : 22.2 * rightLength;
 
     this.leftContainerStyles = { ...SwipeStyles.leftContainerStyles, ...{ width: `${btnsLeftWidthCss}%` }};
     this.rightContainerStyles = { ...SwipeStyles.rightContainerStyles, ...{ width: `${btnsRightWidthCss}%`}};
